@@ -1,0 +1,94 @@
+/* -----------------------------------------------------------------------------
+Footer
+----------------------------------------------------------------------------- */
+
+html, body{
+ margin: 0px;
+ padding: 0px;
+ outline: 0px;
+ height: 100%;
+ min-height: 675px;
+}
+
+img.home {
+  height: 200px;
+}
+
+@media (max-width: 990px) {
+
+  .P100{
+    margin-top: -50px;
+  }
+}
+
+.P100{
+  height: calc(100% - 100px - 80px);
+  width: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+Vertical align
+----------------------------------------------------------------------------- */
+
+.Aligner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.Aligner-item {
+  flex: 1;
+}
+
+.Aligner-item--top {
+  align-self: flex-start;
+}
+
+.Aligner-item--bottom {
+  align-self: flex-end;
+}
+
+.Aligner-item--fixed {
+  flex: none;
+  max-width: 50%;
+}
+
+
+.button {
+  border-radius: 4px;
+  background-color: red;
+  border: none;
+  color: #FFFFFF;
+  text-align: center;
+  font-size: 28px;
+  padding: 20px;
+  width: 300px;
+  transition: all 0.5s;
+  cursor: pointer;
+  margin: 5px;
+}
+
+.button span {
+  cursor: pointer;
+  display: inline-block;
+  position: relative;
+  transition: 0.5s;
+}
+
+.button span:after {
+  content: '\00bb';
+  position: absolute;
+  opacity: 0;
+  top: 0;
+  right: -20px;
+  transition: 0.5s;
+}
+
+.button:hover span {
+  padding-right: 25px;
+}
+
+.button:hover span:after {
+  opacity: 1;
+  right: 0;
+}

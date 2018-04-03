@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+	<title>START-R</title>
+
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+
+
+	<link href="style.css" rel="stylesheet">
+	<link href="./Images/icon.ico" rel="shortcut icon">
+
+</head>
+
+<body>
+	<!-- ========================================================================
+	NAVBAR
+========================================================================= -->
+<nav class="navbar navbar-expand-lg navbar-light bg-light P100px">
+	<a class="navbar-brand" href="./index.html">
+		<img src="./Images/Logo_START_R.svg" class="d-inline-block align-top logo" alt="">
+	</a>
+	<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+		<span class="navbar-toggler-icon"></span>
+	</button>
+
+	<div class="collapse navbar-collapse" id="navbarSupportedContent">
+		<ul class="navbar-nav mr-auto">
+			<li class="nav-item active">
+				<a class="nav-link" href="./index.html">Home <span class="sr-only">(current)</span></a>
+			</li>
+
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					The project
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" href="./bio_context.html">Biological context</a>
+					<a class="dropdown-item" href="./tech_context.html">Technical context</a>
+				</div>
+			</li>
+
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					START-R
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" href="./brief.html">In brief</a>
+					<a class="dropdown-item" href="./start_r.html">START-R protocol</a>
+					<a class="dropdown-item" href="./start_r_viewer.html">START-R viewer</a>
+				</div>
+			</li>
+
+			<li class="nav-item dropdown">
+				<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+					Tools
+				</a>
+				<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+					<a class="dropdown-item" href="#">Installation</a>
+					<a class="dropdown-item" href="#">Documentations</a>
+				</div>
+			</li>
+
+			<li class="nav-item">
+				<a class="nav-link" href="./team.html">Our team</a>
+			</li>
+
+			<li class="nav-item">
+				<a class="nav-link" href="./contact.html">Contact</a>
+			</li>
+
+		</ul>
+		<style media="screen">
+			.right_dec{
+				margin-right: 90px
+			}
+		</style>
+
+		<ul class="navbar-nav navbar-right">
+			<li class="nav-item dropdown">
+			 <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				 <img src="./Images/socials/Github-color.svg" alt="Github" class="git_head">
+			 </a>
+			 <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+				 <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R">Visit us on Github</a>
+				 <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.zip">Download zip   <img src="./Images/download.svg" alt="DL" class="DL"></a>
+				 <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.tar.gz">Download tar.gz  <img src="./Images/download.svg" alt="DL" class="DL"></a>
+			 </div>
+		 </li>
+		 </ul>
+	</div>
+</nav>
+
+	<!-- ========================================================================
+		CONTAIN
+	========================================================================= -->
+
+	<div class="container contain">
+		<div class="mt-3">
+			<h1 class="center">Our team</h1>
+		</div>
+
+		<p>
+			The main research theme of our team (Pathologies of DNA replication) is how the deregulation of DNA replication program can induce genetic instability and then lead to human diseases. To answer this question we are interested in both physiological and stressed DNA replication process, like in cancer cells. We use a variety of methods including high-throughput approaches as microarray, ChIP-sequencing and also classical molecular and cellular biology methods as DNA-2D-gel and CrispR-cas9. We also analyse genomic "big data" from various public consortium databases in order to find a relationship between diseases and molecular elements associated with replication. We also develop bioinformatic programs to analyse our results and actually the implementation of bioinformatic tools is an important part of our daily activities.
+		</p>
+
+		<div class="container">
+			<div class="row">
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/GB.JPG" alt="GB" class="team center" />
+					<p class="center name">Giuseppe Baldacci</p>
+					<p class="center">Emerita</p>
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:Giuseppe.BALDACCI@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/giuseppe-baldacci-459198121/" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit. Nam vitae leo orci.
+					</p>
+
+				</div>
+
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/JC.JPG" alt="JC" class="team center" />
+					<p class="center name">Jean-Charles Cadoret</p>
+					<p class="center">Team leader</p>
+
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:jean-charles.Cadoret@ijm.fr " target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/jean-charles-cadoret-74392a57/" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						 I am an associated professeur at the Paris-Diderot University and
+						 I am the group leader of the "Pathologies of DNA replication" team.
+						 Daily I perform High-troughput experiments as ChIP-sequencing,
+						 Whole genome replication timing program characterization, functional genomic.
+						  My interest concerns DNA replication and relationship with genomic
+							organization and then the impact of these on the genetic instability
+							when these processes failled.
+					</p>
+				</div>
+
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/TD.JPG" alt="TD" class="team center" />
+					<p class="center name">Thomas Denecker</p>
+					<p class="center">PhD studient</p>
+
+					<div class="row center">
+						<div class="col-lg-2">
+							<a href="tel:+33169155720 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col-lg-2">
+							<a href="mailto:thomas.denecker@u-psud.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col-lg-2">
+							<a href="https://www.linkedin.com/in/thomas-denecker-23143bb4/" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+						<div class="col-lg-2">
+							<a href="https://github.com/thomasdenecker" target="_blank"><img src="./Images/socials/Github-black.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col-lg-2">
+							<a href="https://twitter.com/DeneckerThomas" target="_blank"><img src="./Images/socials/twitter.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col-lg-2">
+							<a href="http://thomas.denecker.free.fr/" target="_blank"><img src="./Images/socials/web.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+
+					<p> I am a Php student in computational biology and bioinformatics. I realize my thesis under the direction of Gaëlle Lelandais in the BIM team of Institut de Biologie Intégrative de la Cellule (I2BC) directed by Olivier Lespinet.
+					</p>
+				</div>
+			</div>
+
+			<div class="row ">
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/FF.JPG" alt="FF" class="team center" />
+					<p class="center name">Fabien Fauchereau</p>
+					<p class="center">Assistant Professor</p>
+
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:fabien.fauchereau@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/fabien-fauchereau-a8456015" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit. Nam vitae leo orci.
+					</p>
+				</div>
+
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/AH.JPG" alt="AH" class="team center" />
+					<p class="center name">Anne-Lise Haenni</p>
+					<p class="center">Emerita</p>
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:anne-lise.haenni@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/anne-lise-haenni-aa8351a4/?authType=name&authToken=CHR8" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit. Nam vitae leo orci.
+					</p>
+				</div>
+
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/DH.JPG" alt="DH" class="team center" />
+					<p class="center name">Djihad Hadjadj</p>
+					<p class="center">PhD studient</p>
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:Djihad.HADJADJ@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/djihad-hadjadj-8b105758/" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://twitter.com/DjidjiJdaJdah?lang=fr" target="_blank"><img src="./Images/socials/twitter.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						I am a PhD student interested in the mechanisms regulating eukaryotic DNA replication.
+						To do so I use both classic methods (cell culture, western-blots, qPCRs…)
+						and high-throughput approaches (ChiP-chip, ChIP-sequencing…).
+						I hope that it will help us understand, at least partly, genomic instability in cancer cells.
+					</p>
+				</div>
+			</div>
+
+			<div class="row">
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/SK.JPG" alt="SK" class="team center" />
+					<p class="center name">Su-Jung Kim</p>
+					<p class="center">PhD studient</p>
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:su-jung.kim@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="#" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit. Nam vitae leo orci.
+					</p>
+				</div>
+
+				<!-- Vignette -->
+				<div class="col-lg-4 bottom">
+					<img src="./Images/Team/CM.JPG" alt="CM" class="team center" />
+					<p class="center name">Chrystelle Maric-Antoinat</p>
+					<p class="center">Researcher</p>
+					<div class="row center">
+						<div class="col">
+							<a href="tel:+33157278074 " target="_blank"><img src="./Images/socials/phone.svg" alt="Github" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="mailto:chrystelle.maric@ijm.fr" target="_blank"><img src="./Images/socials/mail.svg" alt="Twitter" class="socials_team"></a>
+						</div>
+						<div class="col">
+							<a href="https://www.linkedin.com/in/maric-antoinat-chrystelle-4a9565109/" target="_blank"><img src="./Images/socials/linkedin.svg" alt="Linkedin" class="socials_team"></a>
+						</div>
+					</div>
+					<br>
+					<p>
+						Molecular biologist, I'm interested in eukaryotic DNA replication,
+						 replication fork progression and pausing sites. Trying to understand
+						 more precisely the replication / transcription coupling and the environment
+						 of replication forks pausing and arrest is part of my concerns with the
+						 implication of DNA replication in the relationship between genome stability
+						 and cancer appearance.
+					</p>
+				</div>
+			</div>
+
+			<!-- Vignette -->
+			<div class="col-lg-4 bottom">
+			</div>
+		</div>
+
+	</div>
+
+	</div>
+
+	<!-- ========================================================================
+	FOOTER
+========================================================================= -->
+
+	<footer class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="row height50 vertical-align">
+						<div class="col-md-12">
+							<nav class="footer ">
+								<ul>
+									<li><a href="./index.html">Home</a></li>
+									<li><a href="#">About</a></li>
+									<li><a href="#">Team</a></li>
+									<li><a href="#">Contact</a></li>
+								</ul>
+							</nav>
+						</div>
+					</div>
+					<div class="row height50 vertical-align">
+						<div class="col-md-12">
+							<a href="https://github.com/thomasdenecker/START-R" target="_blank"><img src="./Images/socials/Github-color.svg" alt="Github" class="socials"></a>
+							<img src="./Images/socials/Slack-color.svg" alt="Slack" class="socials">
+							<a href="https://twitter.com/DNA_RepPath_lab?lang=fr" target="_blank"><img src="./Images/socials/Twitter-color.svg" alt="Twitter" class="socials"></a>
+						</div>
+					</div>
+				</div>
+
+				<div class="col-lg-8 vertical_content">
+					<a href="http://www.ijm.fr/en/home-page/" target="_blank"><img src="./Images/Partenaires/IJM.jpeg" height="80px" alt="" class="partenaire"></a>
+					<a href="http://www.i2bc.paris-saclay.fr/?lang=en" target="_blank"><img src="./Images/Partenaires/i2bc.png" height="80px" alt="I2BC" class="partenaire"></a>
+					<a href="http://www.cnrs.fr/index.php" target="_blank"><img src="./Images/Partenaires/CNRS.png" height="80px" alt="CNRS" class="partenaire"></a>
+					<a href="https://www.univ-paris-diderot.fr/" target="_blank"><img src="./Images/Partenaires/P7.png" height="80px" alt="P7" class="partenaire"></a>
+					<a href="http://www.u-psud.fr/fr/index.html" target="_blank"><img src="./Images/Partenaires/P11.jpg" height="80px" alt="P11" class="partenaire"></a>
+				</div>
+			</div>
+
+		</div>
+	</footer>
+
+	<script type="text/javascript">
+		$('.carousel').carousel({
+			interval: 4000
+		})
+	</script>
+</body>
+
+</html>

@@ -1,0 +1,200 @@
+/* /////////////////////////////////////////////////////////////////////////////
+STATR-R web application style
+///////////////////////////////////////////////////////////////////////////// */
+
+/* -----------------------------------------------------------------------------
+General
+----------------------------------------------------------------------------- */
+
+.center{
+  text-align: center;
+}
+
+img.center{
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+img.logo {
+  height : 100px;
+  display: block;
+  margin: 20px auto ;
+}
+
+div.contain_all{
+  margin-bottom: 10px;
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+p{
+  text-align: justify;
+}
+
+/* -----------------------------------------------------------------------------
+Nav
+----------------------------------------------------------------------------- */
+
+img.icon{
+  height: 30px;
+  margin-top: -5px
+}
+
+/* -----------------------------------------------------------------------------
+Intro
+----------------------------------------------------------------------------- */
+a.no_style{
+  text-decoration: none;
+}
+
+p.intro{
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+div.CG{
+  margin-left: 10%;
+  margin-right: 10%;
+}
+
+
+img.dif{
+  width: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+button
+----------------------------------------------------------------------------- */
+button {
+  float:right;
+  margin-left: 10px;
+  margin-bottom: 20px;
+}
+
+button.intro {
+  float:right;
+  margin-right: 10%;
+}
+
+button.no_float {
+  float: none;
+  margin-bottom: 20px;
+}
+
+button.run {
+    float: none;
+    display: block;
+    margin: 20px auto ;
+
+    background-color: #FF0000; /* red */
+    border: none;
+    color: white;
+    padding: 15px 32px;
+    text-align: center;
+    text-decoration: none;
+    font-size: 16px;
+    cursor: pointer;
+    -webkit-transition-duration: 0.4s; /* Safari */
+    transition-duration: 0.4s;
+}
+
+button.run:hover {
+    box-shadow: 0 12px 16px 0 rgba(0,0,0,0.24),0 17px 50px 0 rgba(0,0,0,0.19);
+}
+
+/* -----------------------------------------------------------------------------
+Progress bar
+----------------------------------------------------------------------------- */
+
+img.process{
+  height: 30%;
+  display: block;
+  margin: 20px auto ;
+}
+
+progress{
+  width: 100%;
+}
+
+/* -----------------------------------------------------------------------------
+End
+----------------------------------------------------------------------------- */
+
+img.end{
+  height: 60%;
+  display: block;
+  margin: 20px auto ;
+}
+
+.checkmark {
+  width: 100px;
+  margin: 0 auto;
+  padding-top: 40px;
+}
+
+.path {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 0;
+  animation: dash 2s ease-in-out;
+  -webkit-animation: dash 2s ease-in-out;
+}
+
+.spin {
+  animation: spin 2s;
+  -webkit-animation: spin 2s;
+  transform-origin: 50% 50%;
+  -webkit-transform-origin: 50% 50%;
+}
+
+@-webkit-keyframes dash {
+ 0% {
+   stroke-dashoffset: 1000;
+ }
+ 100% {
+   stroke-dashoffset: 0;
+ }
+}
+
+@keyframes dash {
+ 0% {
+   stroke-dashoffset: 1000;
+ }
+ 100% {
+   stroke-dashoffset: 0;
+ }
+}
+
+@-webkit-keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@keyframes spin {
+  0% {
+    -webkit-transform: rotate(0deg);
+  }
+  100% {
+    -webkit-transform: rotate(360deg);
+  }
+}
+
+@-webkit-keyframes text {
+  0% {
+    opacity: 0; }
+  100% {
+    opacity: 1;
+  }
+
+
+  @keyframes text {
+  0% {
+    opacity: 0; }
+  100% {
+    opacity: 1;
+  }
+}
