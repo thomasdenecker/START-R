@@ -1,5 +1,6 @@
-# START-R project
+<p align="center"><img src="docs/Images/Logo_START_R.svg" alt="logo" height="150px"></p>
 
+------
 
 ## Requirements
 
