@@ -328,17 +328,16 @@ ui <- tagList( useShinyjs(),
                                 ),
                                 
                                 column(3,
-                                radioButtons("Late_frac", "Late fraction",
-                                             choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
-                                             ),
-                                             selected = "Cy5")
-                                ),
-                                
-                                column(3,
                                        radioButtons("Early_frac", "Early fraction",
                                                     choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
                                                     ),
                                                     selected = "Cy3")
+                                ), 
+                                column(3,
+                                       radioButtons("Late_frac", "Late fraction",
+                                                    choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
+                                                    ),
+                                                    selected = "Cy5")
                                 )
                                 
                             ),
@@ -1616,8 +1615,8 @@ server <- function(input, output, session) {
     fs1 = input$skip_E1_R1
     fs2 = input$Green_signal 
     fs3 = input$Red_signal 
-    fs4 = input$Late_frac 
-    fs5 = input$Early_frac
+    fs4 = input$Early_frac
+    fs5 = input$Late_frac  
   
     pv1 = input$num_PVT
     pv2 = input$num_WS
