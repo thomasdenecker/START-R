@@ -1,14 +1,26 @@
+################################################################################
+# START-R annalyzer
+# Thomas DENECKER
+# 2018
+#
+# GitHub :
+# https://github.com/thomasdenecker/START-R
+################################################################################
+
+################################################################################
+# Library
+################################################################################
+
 library(shiny)
 library(shinyFiles)
-library("shinyjs")
+library(shinyjs)
 library(shinythemes)
 library(limma)
-
 library(DNAcopy)
 library(SNPchip)
 library(pracma)
 library(data.table)
-library("htmltools")
+library(htmltools)
 library(clusterSim)
 library(car)
 
@@ -3344,28 +3356,25 @@ server <- function(input, output, session) {
               debut2[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
             }
           } 
-          ############################################################################################
-          ############################################################################################
-          # ICI modification pour la localisation des différences dans la mean
-          # Voir uniquement pour la Mouse car l'Human c'est bon
-          ############################################################################################
-          ############################################################################################
-          
           
           if(!is.null(debut1)){
             if (organisme == "Human"){
-              advanced = cbind(debut1 + Loess_data1$POSITION[1],fin1+ Loess_data1$POSITION[1] )
+              advanced = cbind(debut1 + Loess_data1$POSITION[1],fin1 + Loess_data1$POSITION[1] )
+              # advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
             } else if (organisme == "Mouse"){
-              advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ) 
-              #advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
+              advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
+              # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ) 
+              # advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
             }
           }
           if(!is.null(debut2)){
             if (organisme == "Human"){
-              delayed= cbind(debut2 + Loess_data1$POSITION[1], fin2+ Loess_data1$POSITION[1])
+              delayed= cbind(debut2 + Loess_data1$POSITION[1] , fin2+ Loess_data1$POSITION[1])
+              # delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
             } else if (organisme == "Mouse"){
-              delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
-              #delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
+              delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+              # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
+              # delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
             }
           }
           
