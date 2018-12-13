@@ -1,14 +1,27 @@
+################################################################################
+# START-R analyzer  : a Simple tool to analyse Replication Timing with R
+# Thomas DENECKER
+# thomas.denecker@gmail.com
+# 2018
+#
+# GitHub :
+# https://github.com/thomasdenecker/START-R
+################################################################################
+
+################################################################################
+# Library
+################################################################################
+
 library(shiny)
 library(shinyFiles)
-library("shinyjs")
+library(shinyjs)
 library(shinythemes)
 library(limma)
-
 library(DNAcopy)
 library(SNPchip)
 library(pracma)
 library(data.table)
-library("htmltools")
+library(htmltools)
 library(clusterSim)
 library(car)
 
@@ -23,28 +36,28 @@ options(shiny.maxRequestSize = 1000*1024^2)
 ui <- tagList( useShinyjs(),
                tags$head(tags$title("START-R")),
                tags$head(tags$link(href = "PCNA.ico", rel ="shortcut icon")),
-      
+               
                HTML('<link rel="stylesheet" type="text/css" href="style.css" />'),
-  
+               
                img(src = "Logo_START_R.svg", class = "logo"),
                
                navbarPage(img(src = "PCNA.png", class = "icon"),id = "Workflow",
-                
                           
-                #==================================================
-                # Presentation
-                #==================================================
-                
-                tabPanel(title = "Workflow", value = "pres", 
-                         HTML('<progress value="0" max="100"></progress>'),
-                         h1("Welcome", class= "center"),
-                         p('DNA replication is a highly regulated process involved in 
+                          
+                          #==================================================
+                          # Presentation
+                          #==================================================
+                          
+                          tabPanel(title = "Workflow", value = "pres", 
+                                   HTML('<progress value="0" max="100"></progress>'),
+                                   h1("Welcome", class= "center"),
+                                   p('DNA replication is a highly regulated process involved in 
                             maintaining of genome stability. It relies on a spatio-temporal program determining 
                             where and when replication starts along the genome. The replication timing (RT) 
                             program is finely tuned and reflects the high order organization of the metazoan 
                             genome. It is clear that this program evolves with cell differentiation and cell fate. 
                             Moreover aberrant DNA RT  has been reported in many diseases including cancer.', class="intro"),
-                         p('The protocol developed to study the RT of a given cell type is well established. 
+                                   p('The protocol developed to study the RT of a given cell type is well established. 
                             We have improved the method permitting analysis of RT of the entire genome 
                             in mammalian cells. We implemented two bioinformatic tools, START-R 
                             (Simple Tool for Analysis of Replication Timing with R) and START-R viewer. 
@@ -59,634 +72,628 @@ ui <- tagList( useShinyjs(),
                             Mac OS X and Linux systems without virtual machine. The script will 
                             remain open to the scientific community so that the software can always be improved or developed.
                            ', class="intro"),
-                         
-                         HTML('<a href="http://www.ijm.fr/" class ="no_style"><button type="button" class="run">Visit website !</button></a>'),
-                         
-                         p('This web application will allow you to enter the necessary informations for 
+                                   
+                                   HTML('<a href="http://www.ijm.fr/" class ="no_style"><button type="button" class="run">Visit website !</button></a>'),
+                                   
+                                   p('This web application will allow you to enter the necessary informations for 
                             the analysis to run correctly. All the steps are organized 
                             in workflow. Each input is checked to avoid incorrect analyses.
                            ', class="intro"),
-                         
-                         actionButton('NextS1', 'Next', class = 'intro')
-                ),     
-                #==================================================
-                # Step 1 - General
-                #==================================================
-                
-                 tabPanel(title = "Initialisation", value = "Step1",
-                          HTML('<progress value="17" max="100"></progress>'),
-                          HTML("<div class='CG'>"),
-                          h1("Initialisation", class ="center"),
-                          fluidRow(
-                            column(6,
-                              h3("Organism", class = "center"),
-                              p("Two types of organisms can be studied in START-R", class = "center"),
-                              HTML("<div class='center'>"),
-                              radioButtons("organism", label = NA,
-                                           choices = list("Human" = "Human", "Mouse" = "Mouse"),
-                                           selected = "Human", inline = T),
-                              HTML("</div>"),
-                              uiOutput("orga_img")
-                              
-                            ),
-                            column(6,
-                              h3("Differential", class = "center"),
-                              p("Detect differences between 2 experiments", class = "center"),
-                              HTML("<div class='center'>"),
-                              radioButtons("dif", label = NA,
-                                           choices = list("Yes" = "Yes", "No" = "No"),
-                                           selected = "No", inline = T),
-                              HTML("</div>"),
-                              img(src= "differential.png", alt = 'dif', class = "dif")
-                              
-                            )
+                                   
+                                   actionButton('NextS1', 'Next', class = 'intro')
+                          ),     
+                          #==================================================
+                          # Step 1 - General
+                          #==================================================
+                          
+                          tabPanel(title = "Initialisation", value = "Step1",
+                                   HTML('<progress value="17" max="100"></progress>'),
+                                   HTML("<div class='CG'>"),
+                                   h1("Initialisation", class ="center"),
+                                   fluidRow(
+                                     column(6,
+                                            h3("Organism", class = "center"),
+                                            p("Two types of organisms can be studied in START-R", class = "center"),
+                                            HTML("<div class='center'>"),
+                                            radioButtons("organism", label = NA,
+                                                         choices = list("Human" = "Human", "Mouse" = "Mouse"),
+                                                         selected = "Human", inline = T),
+                                            HTML("</div>"),
+                                            uiOutput("orga_img")
+                                            
+                                     ),
+                                     column(6,
+                                            h3("Differential", class = "center"),
+                                            p("Detect differences between 2 experiments", class = "center"),
+                                            HTML("<div class='center'>"),
+                                            radioButtons("dif", label = NA,
+                                                         choices = list("Yes" = "Yes", "No" = "No"),
+                                                         selected = "No", inline = T),
+                                            HTML("</div>"),
+                                            img(src= "differential.png", alt = 'dif', class = "dif")
+                                            
+                                     )
+                                   ),
+                                   
+                                   actionButton('NextS2', 'Next'),
+                                   actionButton('PrevPres', 'Prev.'),
+                                   HTML("</div>")
                           ),
                           
-                          actionButton('NextS2', 'Next'),
-                          actionButton('PrevPres', 'Prev.'),
-                          HTML("</div>")
-                  ),
-                
-                #==================================================
-                # Step 2 _ File select
-                #==================================================
-                 
-                 tabPanel(title = "File select", value = "Step2",
-                          HTML('<progress value="34" max="100"></progress>'),
+                          #==================================================
+                          # Step 2 _ Import data
+                          #==================================================
                           
-                          h1("Select file"),
-                          p("In this step, you must choose your files to analyze."),
-                          
-                          h2("Experiment 1"),
-                          fluidRow(
-                            
-                            column(3,
-                                   h3("Replica 1"),
-                                   fileInput("file_E1_R1", label = NA),
-                                   # Horizontal line ----
+                          tabPanel(title = "Import data", value = "Step2",
+                                   HTML('<progress value="34" max="100"></progress>'),
+                                   
+                                   h1("Import data"),
+                                   p("In this step, you set up and select the files to import"),
+                                   h2("General parameters"),
+                                   tags$hr(),
+                                   fluidRow(
+                                     column(3,
+                                            textInput(inputId= "Green_signal", 
+                                                      label= "Column name of green signal :", 
+                                                      value = "gProcessedSignal")
+                                     ),
+                                     
+                                     column(3,
+                                            textInput(inputId= "Red_signal", 
+                                                      label= "Column name of red signal :", 
+                                                      value = "rProcessedSignal", placeholder = NULL)
+                                     ),
+                                     
+                                     column(3,
+                                            radioButtons("Early_frac", "Early fraction",
+                                                         choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
+                                                         ),
+                                                         selected = "Cy3")
+                                     ), 
+                                     column(3,
+                                            radioButtons("Late_frac", "Late fraction",
+                                                         choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
+                                                         ),
+                                                         selected = "Cy5")
+                                     )
+                                     
+                                   ),
+                                   
+                                   h2("Select file"),
                                    tags$hr(),
                                    
-                                   # Input: Checkbox if file has header ---- NOT CONNECTED
-                                   radioButtons("header_E1_R1", "Header",
-                                                choices = c("Yes" = TRUE,
-                                                            "No" = FALSE),
-                                                selected = TRUE, inline=T),
+                                   h3("Experiment 1"),
+                                   fluidRow(
+                                     
+                                     column(3,
+                                            h4("Replica 1"),
+                                            fileInput("file_E1_R1", label = NA),
+                                            # Horizontal line ----
+                                            tags$hr(),
+                                            
+                                            # Input: Checkbox if file has header ---- NOT CONNECTED
+                                            radioButtons("header_E1_R1", "Header",
+                                                         choices = c("Yes" = TRUE,
+                                                                     "No" = FALSE),
+                                                         selected = TRUE, inline=T),
+                                            
+                                            # Input: Select separator ----
+                                            radioButtons("sep_E1_R1", "Separator",
+                                                         choices = c(Comma = ",",
+                                                                     Semicolon = ";",
+                                                                     Tab = "\t"),
+                                                         selected = "\t", inline=T),
+                                            
+                                            # Input: Select quotes ----
+                                            radioButtons("quote_E1_R1", "Quote",
+                                                         choices = c(None = "",
+                                                                     "Double Quote" = '"',
+                                                                     "Single Quote" = "'"),
+                                                         selected = "", inline=T),
+                                            
+                                            # Input: Select number of rows to skip ----
+                                            p(tags$b("Number of microarray information lines to skip")),
+                                            numericInput("skip_E1_R1", label = NA, value = 9,
+                                                         min = 0, max = 15),
+                                            
+                                            # Input: Select number of rows to display ----
+                                            radioButtons("disp_E1_R1", "Display",
+                                                         choices = c(Head = "head",
+                                                                     "More (100 lines)" = "more",
+                                                                     No = "no"),
+                                                         selected = "head", inline=T)
+                                            
+                                            
+                                            
+                                     ),
+                                     h4("Preview"),
+                                     column(dataTableOutput(outputId = "contents_E1_R1"), width = 9)
+                                   ),
                                    
-                                   # Input: Select separator ----
-                                   radioButtons("sep_E1_R1", "Separator",
-                                                choices = c(Comma = ",",
-                                                            Semicolon = ";",
-                                                            Tab = "\t"),
-                                                selected = "\t", inline=T),
-                                   
-                                   # Input: Select quotes ----
-                                   radioButtons("quote_E1_R1", "Quote",
-                                                choices = c(None = "",
-                                                            "Double Quote" = '"',
-                                                            "Single Quote" = "'"),
-                                                selected = "", inline=T),
-                                   
-                                   # Input: Select number of rows to skip ----
-                                   p(tags$b("Number of microarray information lines to skip")),
-                                   numericInput("skip_E1_R1", label = NA, value = 9,
-                                                min = 0, max = 15),
-                                   
-                                   # Input: Select number of rows to display ----
-                                   radioButtons("disp_E1_R1", "Display",
-                                                choices = c(Head = "head",
-                                                            "More (100 lines)" = "more",
-                                                            No = "no"),
-                                                selected = "head", inline=T)
-                                   
-                                   
-                                  
-                            ),
-                            h3("Preview"),
-                            column(dataTableOutput(outputId = "contents_E1_R1"), width = 9)
-                          ),
-                          
-                          tags$hr(),
-                          
-                          #actionButton('reset_E1_R1', 'Reset Input'),
-                          
-                          fluidRow(
-                            
-                            column(3,
-                                   h3("Replica 2"),
-                                   fileInput("file_E1_R2", label = NA),
-                                   # Horizontal line ----
                                    tags$hr(),
                                    
-                                   # Input: Select number of rows to display ----
-                                   radioButtons("disp_E1_R2", "Display",
-                                                choices = c(Head = "head",
-                                                            "More (100 lines)" = "more",
-                                                            No = "no"),
-                                                selected = "head", inline=T),
+                                   fluidRow(
+                                     
+                                     column(3,
+                                            h4("Replica 2"),
+                                            fileInput("file_E1_R2", label = NA),
+                                            # Horizontal line ----
+                                            tags$hr(),
+                                            
+                                            # Input: Select number of rows to display ----
+                                            radioButtons("disp_E1_R2", "Display",
+                                                         choices = c(Head = "head",
+                                                                     "More (100 lines)" = "more",
+                                                                     No = "no"),
+                                                         selected = "head", inline=T),
+                                            
+                                            # Input: Checkbox if file has header ---- NOT CONNECTED
+                                            radioButtons("header_E1_R2", "Header",
+                                                         choices = c("Yes" = TRUE,
+                                                                     "No" = FALSE),
+                                                         selected = TRUE, inline=T),
+                                            
+                                            # Input: Select separator ----
+                                            radioButtons("sep_E1_R2", "Separator",
+                                                         choices = c(Comma = ",",
+                                                                     Semicolon = ";",
+                                                                     Tab = "\t"),
+                                                         selected = "\t", inline=T),
+                                            
+                                            # Input: Select quotes ----
+                                            radioButtons("quote_E1_R2", "Quote",
+                                                         choices = c(None = "",
+                                                                     "Double Quote" = '"',
+                                                                     "Single Quote" = "'"),
+                                                         selected = "", inline=T),
+                                            
+                                            # Input: Select number of rows to skip ----
+                                            p(tags$b("Number of microarray information lines to skip")),
+                                            numericInput("skip_E1_R2", label = NA, value = 9,
+                                                         min = 0, max = 15)
+                                            
+                                     ),
+                                     h4("Preview"),
+                                     column(dataTableOutput(outputId = "contents_E1_R2"), width = 9)
+                                   ),
                                    
-                                   # Input: Checkbox if file has header ---- NOT CONNECTED
-                                   radioButtons("header_E1_R2", "Header",
-                                                choices = c("Yes" = TRUE,
-                                                            "No" = FALSE),
-                                                selected = TRUE, inline=T),
+                                   h3("Experiment 2", id="title_E2"),
                                    
-                                   # Input: Select separator ----
-                                   radioButtons("sep_E1_R2", "Separator",
-                                                choices = c(Comma = ",",
-                                                            Semicolon = ";",
-                                                            Tab = "\t"),
-                                                selected = "\t", inline=T),
+                                   fluidRow(id="row_E2_R1",
+                                            
+                                            column(3,
+                                                   h4("Replica 1"),
+                                                   fileInput("file_E2_R1", label = NA),
+                                                   # Horizontal line ----
+                                                   tags$hr(),
+                                                   
+                                                   # Input: Select number of rows to display ----
+                                                   radioButtons("disp_E2_R1", "Display",
+                                                                choices = c(Head = "head",
+                                                                            "More (100 lines)" = "more",
+                                                                            No = "no"),
+                                                                selected = "head", inline=T),
+                                                   
+                                                   # Input: Checkbox if file has header ---- NOT CONNECTED
+                                                   radioButtons("header_E2_R1", "Header",
+                                                                choices = c("Yes" = TRUE,
+                                                                            "No" = FALSE),
+                                                                selected = TRUE, inline=T),
+                                                   
+                                                   # Input: Select separator ----
+                                                   radioButtons("sep_E2_R1", "Separator",
+                                                                choices = c(Comma = ",",
+                                                                            Semicolon = ";",
+                                                                            Tab = "\t"),
+                                                                selected = "\t", inline=T),
+                                                   
+                                                   # Input: Select quotes ----
+                                                   radioButtons("quote_E2_R1", "Quote",
+                                                                choices = c(None = "",
+                                                                            "Double Quote" = '"',
+                                                                            "Single Quote" = "'"),
+                                                                selected = "", inline=T),
+                                                   
+                                                   # Input: Select number of rows to skip ----
+                                                   p(tags$b("Number of microarray information lines to skip")),
+                                                   numericInput("skip_E2_R1", label = NA, value = 9,
+                                                                min = 0, max = 15)
+                                                   
+                                            ),
+                                            h4("Preview"),
+                                            column(dataTableOutput(outputId = "contents_E2_R1"), width = 9)
+                                   ),
                                    
-                                   # Input: Select quotes ----
-                                   radioButtons("quote_E1_R2", "Quote",
-                                                choices = c(None = "",
-                                                            "Double Quote" = '"',
-                                                            "Single Quote" = "'"),
-                                                selected = "", inline=T),
-                                   
-                                   # Input: Select number of rows to skip ----
-                                   p(tags$b("Number of microarray information lines to skip")),
-                                   numericInput("skip_E1_R2", label = NA, value = 9,
-                                                min = 0, max = 15)
-
-                            ),
-                            h3("Preview"),
-                            column(dataTableOutput(outputId = "contents_E1_R2"), width = 9)
-                          ),
-                          
-                          h2("Experiment 2", id="title_E2"),
-                          
-                          fluidRow(id="row_E2_R1",
-                            
-                            column(3,
-                                   h3("Replica 1"),
-                                   fileInput("file_E2_R1", label = NA),
-                                   # Horizontal line ----
                                    tags$hr(),
                                    
-                                   # Input: Select number of rows to display ----
-                                   radioButtons("disp_E2_R1", "Display",
-                                                choices = c(Head = "head",
-                                                            "More (100 lines)" = "more",
-                                                            No = "no"),
-                                                selected = "head", inline=T),
                                    
-                                   # Input: Checkbox if file has header ---- NOT CONNECTED
-                                   radioButtons("header_E2_R1", "Header",
-                                                choices = c("Yes" = TRUE,
-                                                            "No" = FALSE),
-                                                selected = TRUE, inline=T),
-                                   
-                                   # Input: Select separator ----
-                                   radioButtons("sep_E2_R1", "Separator",
-                                                choices = c(Comma = ",",
-                                                            Semicolon = ";",
-                                                            Tab = "\t"),
-                                                selected = "\t", inline=T),
-                                   
-                                   # Input: Select quotes ----
-                                   radioButtons("quote_E2_R1", "Quote",
-                                                choices = c(None = "",
-                                                            "Double Quote" = '"',
-                                                            "Single Quote" = "'"),
-                                                selected = "", inline=T),
-                                   
-                                   # Input: Select number of rows to skip ----
-                                   p(tags$b("Number of microarray information lines to skip")),
-                                   numericInput("skip_E2_R1", label = NA, value = 9,
-                                                min = 0, max = 15)
-
-                            ),
-                            h3("Preview"),
-                            column(dataTableOutput(outputId = "contents_E2_R1"), width = 9)
-                          ),
-                          
-                          tags$hr(),
-                          
-                          
-                          fluidRow( id = "row_E2_R2",
-                            
-                            column(3,
-                                   h3("Replica 2"),
-                                   fileInput("file_E2_R2", label = NA),
-                                   # Horizontal line ----
-                                   tags$hr(),
-                                   
-                                   # Input: Select number of rows to display ----
-                                   radioButtons("disp_E2_R2", "Display",
-                                                choices = c(Head = "head",
-                                                            "More (100 lines)" = "more",
-                                                            No = "no"),
-                                                selected = "head", inline=T),
-                                   
-                                   # Input: Checkbox if file has header ---- NOT CONNECTED
-                                   radioButtons("header_E2_R2", "Header",
-                                                choices = c("Yes" = TRUE,
-                                                            "No" = FALSE),
-                                                selected = TRUE, inline=T),
-                                   
-                                   # Input: Select separator ----
-                                   radioButtons("sep_E2_R2", "Separator",
-                                                choices = c(Comma = ",",
-                                                            Semicolon = ";",
-                                                            Tab = "\t"),
-                                                selected = "\t", inline=T),
-                                   
-                                   # Input: Select quotes ----
-                                   radioButtons("quote_E2_R2", "Quote",
-                                                choices = c(None = "",
-                                                            "Double Quote" = '"',
-                                                            "Single Quote" = "'"),
-                                                selected = "", inline=T),
-                                   
-                                   # Input: Select number of rows to skip ----
-                                   p(tags$b("Number of microarray information lines to skip")),
-                                   numericInput("skip_E2_R2", label = NA, value = 9,
-                                                min = 0, max = 15)
-                                   
-                            ),
-                            h3("Preview"),
-                            column(dataTableOutput(outputId = "contents_E2_R2"), width = 9)
-                          ),
-                          
-                          
-                          fluidRow(
-                            actionButton(inputId = "button", label = "Advanced file parameters", class = "no_float")
-                          ),
-                          
-                          fluidRow(id = "Ad_file_box",
-                                column(3,
-                                textInput(inputId= "Green_signal", 
-                                          label= "Column name of green signal :", 
-                                          value = "gProcessedSignal")
-                                ),
-                                
-                                column(3,
-                                textInput(inputId= "Red_signal", 
-                                          label= "Column name of red signal :", 
-                                          value = "rProcessedSignal", placeholder = NULL)
-                                ),
-                                
-                                column(3,
-                                radioButtons("Late_frac", "Late fraction",
-                                             choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
+                                   fluidRow( id = "row_E2_R2",
+                                             
+                                             column(3,
+                                                    h4("Replica 2"),
+                                                    fileInput("file_E2_R2", label = NA),
+                                                    # Horizontal line ----
+                                                    tags$hr(),
+                                                    
+                                                    # Input: Select number of rows to display ----
+                                                    radioButtons("disp_E2_R2", "Display",
+                                                                 choices = c(Head = "head",
+                                                                             "More (100 lines)" = "more",
+                                                                             No = "no"),
+                                                                 selected = "head", inline=T),
+                                                    
+                                                    # Input: Checkbox if file has header ---- NOT CONNECTED
+                                                    radioButtons("header_E2_R2", "Header",
+                                                                 choices = c("Yes" = TRUE,
+                                                                             "No" = FALSE),
+                                                                 selected = TRUE, inline=T),
+                                                    
+                                                    # Input: Select separator ----
+                                                    radioButtons("sep_E2_R2", "Separator",
+                                                                 choices = c(Comma = ",",
+                                                                             Semicolon = ";",
+                                                                             Tab = "\t"),
+                                                                 selected = "\t", inline=T),
+                                                    
+                                                    # Input: Select quotes ----
+                                                    radioButtons("quote_E2_R2", "Quote",
+                                                                 choices = c(None = "",
+                                                                             "Double Quote" = '"',
+                                                                             "Single Quote" = "'"),
+                                                                 selected = "", inline=T),
+                                                    
+                                                    # Input: Select number of rows to skip ----
+                                                    p(tags$b("Number of microarray information lines to skip")),
+                                                    numericInput("skip_E2_R2", label = NA, value = 9,
+                                                                 min = 0, max = 15)
+                                                    
                                              ),
-                                             selected = "Cy5")
-                                ),
-                                
-                                column(3,
-                                       radioButtons("Early_frac", "Early fraction",
-                                                    choices = list("Cy3" = "Cy3", "Cy5" = "Cy5"
-                                                    ),
-                                                    selected = "Cy3")
-                                )
-                                
-                            ),
-                       
-                          actionButton('NextS3', 'Next'),
-                          actionButton('PrevS1', 'Prev.')
+                                             h4("Preview"),
+                                             column(dataTableOutput(outputId = "contents_E2_R2"), width = 9)
+                                   ),
+                                   
+                                   
+                                   actionButton('NextS3', 'Next'),
+                                   actionButton('PrevS1', 'Prev.')
+                                   
+                          ),
                           
-                  ),
-                
-                #==================================================
-                # Step 3 - Normalisation
-                #==================================================
-                 
-                 tabPanel(title = "Normalisation", value = "Step3",
-                          HTML('<progress value="51" max="100"></progress>'),
-                          h1("Normalisation"),
-                          p("In this step, you can choose the types of normalizations 
+                          #==================================================
+                          # Step 3 - Normalisation
+                          #==================================================
+                          
+                          tabPanel(title = "Normalisation", value = "Step3",
+                                   HTML('<progress value="51" max="100"></progress>'),
+                                   h1("Normalisation"),
+                                   p("In this step, you can choose the types of normalizations 
                             you want to apply to your data."),
-                          
-                          h2("Intra array"),
-                          p("Short description"),
-                          fluidRow(
-                            column(3,radioButtons("RBintra_array", h4("Methods"),
-                                                  choices = list("loess" = "loess", "control" = "control",
-                                                                 "composite" = "composite", 
-                                                                 "printtiploess" = "printtiploess",
-                                                                 "median" = "median", "none" = "none", 
-                                                                 "robustspline" = "robustspline"
-                                                  ),
-                                                  selected = "loess")),
-                            column(3,
-                                   h4("Description"),
-                                   textOutput("Intra_array_description")
-                            ),
-                            column(6,
-                                   plotOutput("scatterPlot_intra_array")
-                            )
+                                   
+                                   h2("Intra array"),
+                                   tags$hr(),
+                                   p("Correction of global intensities in a microarray."),
+                                   fluidRow(
+                                     column(3,radioButtons("RBintra_array", h4("Methods"),
+                                                           choices = list("loess" = "loess", "control" = "control",
+                                                                          "composite" = "composite", 
+                                                                          "printtiploess" = "printtiploess",
+                                                                          "median" = "median", "none" = "none", 
+                                                                          "robustspline" = "robustspline"
+                                                           ),
+                                                           selected = "loess")),
+                                     column(9,
+                                            h4("Description"),
+                                            textOutput("Intra_array_description")
+                                     )
+                                   ),
+                                   
+                                   h2("Inter replica"),
+                                   tags$hr(),
+                                   p("Standardization of replicates to make them comparable."),
+                                   fluidRow(
+                                     column(3,radioButtons("RBinter_replica", h4("Methods"),
+                                                           choices = list("scale"= "scale",  
+                                                                          "quantile" = "quantile",
+                                                                          "none" = "none", "cyclicloess" = "cyclicloess" ), 
+                                                           selected = "scale")),
+                                     column(9,
+                                            h4("Description"),
+                                            textOutput("Inter_replica_description")
+                                     )
+                                   ),
+                                   
+                                   h2("Inter experience"),
+                                   tags$hr(),
+                                   p("With START-R, it is possible to compare two experiences. However, from one microarray 
+                            to another, the quantity of material deposited or the quality of marking may differ. 
+                            In order to make the most accurate comparisons possible, a standardization between 
+                            the data from the two experiments is proposed in order to limit this type of experimental bias."),
+                                   fluidRow(
+                                     column(3,radioButtons("RBinter_experience", h4("Methods"),
+                                                           choices = list("standardization" = "n1", 
+                                                                          "without normalization" = "n0",
+                                                                          "unitization" = "n3"), 
+                                                           selected = "n1")),
+                                     column(9,
+                                            h4("Description"),
+                                            textOutput("Inter_experience_description")
+                                     )
+                                   ),
+                                   
+                                   
+                                   actionButton('NextS4', 'Next'),
+                                   actionButton('PrevS2', 'Prev.')
+                                   
                           ),
                           
-                          h2("Inter replica"),
-                          p("Short description"),
-                          fluidRow(
-                            column(3,radioButtons("RBinter_replica", h4("Methods"),
-                                                  choices = list("scale"= "scale",  
-                                                                 "quantile" = "quantile",
-                                                                 "none" = "none", "cyclicloess" = "cyclicloess" ), 
-                                                  selected = "scale")),
-                            column(3,
-                                   h4("Description"),
-                                   textOutput("Inter_replica_description")
-                            ),
-                            column(6,
-                                   plotOutput("scatterPlot_inter_replica")
-                            )
+                          #==================================================
+                          # Slide 4 - Analysis
+                          #==================================================
+                          
+                          tabPanel(title = "Analysis ", value = "Step4", 
+                                   HTML('<progress value="67" max="100"></progress>'),
+                                   h1("Analysis Parameters"),
+                                   p("In this step, you can set up the different steps of the analysis."),
+                                   fluidRow(class="row-line",
+                                            column(2,h4("Steps")),
+                                            column(2, h4("Objective")),
+                                            column(2, h4("Method")),
+                                            column(3,h4("Method description")),
+                                            column(3,h4("Additional options"))
+                                   ),
+                                   
+                                   fluidRow(class="row-line",
+                                            column(2,checkboxInput("CH_Smooth", label = tags$b("Smooth"), value = TRUE)),
+                                            
+                                            column(2, p("The smoothing step will generate a curve that will try, depending on the algorithm used, 
+                                       to be the most representative of this cloud of points. Once again, START-R allows the user 
+                                       to choose several smoothing functions.")),
+                                            
+                                            column(2,selectInput("select_method_smmoth", label = NA,
+                                                                 choices = list("Loess" = "Loess", 
+                                                                                "Simple" = "s",
+                                                                                "Triangular" = "t", 
+                                                                                "Weighted" = "w",
+                                                                                "Modified" = "m", 
+                                                                                "Exponential" = "e", 
+                                                                                "Running" = "r"
+                                                                 ), 
+                                                                 selected = "loess")
+                                            ),
+                                            column(3,
+                                                   p(textOutput("Smooth_method_description"))
+                                            ),
+                                            
+                                            column(3,
+                                                   tags$b("Span :"),
+                                                   p("The parameter alpha which controls the degree of smoothing.Fitting is done locally. 
+                                    That is, for the fit at point x, the fit is made using points in a neighbourhood 
+                                    of x, weighted by their distance from x (with differences in 'parametric' variables 
+                                    being ignored when computing the distance). The size of the neighbourhood is controlled 
+                                    by alpha (set by span or enp.target). For alpha < 1, the neighbourhood includes proportion alpha of 
+                                    the points, and these have tricubic weighting (proportional to (1 - (dist/maxdist)^3)^3). 
+                                    For alpha > 1, all points are used, with the 'maximum distance' assumed to be alpha^(1/p) 
+                                    times the actual maximum distance for p explanatory variables."),
+                                                   sliderInput("span_slider", label = NA,
+                                                               min = 100000, max = 10000000,
+                                                               step = 100000,
+                                                               value = 500000)
+                                            )
+                                            
+                                   ),
+                                   
+                                   
+                                   fluidRow(class="row-line",
+                                            column(2,checkboxInput("CH_TTR", label = tags$b("TTR"), value = TRUE)),
+                                            
+                                            column(2,
+                                                   p("The curves obtained, after smoothing from DNA chip data, show 'flat' areas 
+                                      that replicate either early or late, called CTRs for Constant Timing Regions. 
+                                    Between an early and a late zone, there is a transition zone called TTR for 
+                                    Timing Transition Region."))
+                                            
+                                   ),
+                                   fluidRow(class="row-line",
+                                            column(2,checkboxInput("CH_segmentation", label = tags$b("Segmentation"), value = TRUE)),
+                                            
+                                            column(2, p("Detection of Constant Timing Regions with TTR information")),
+                                            
+                                            column(2),
+                                            column(3),
+                                            
+                                            column(3,
+                                                   tags$b("Standard deviation:"),
+                                                   p("The number of SDs between means to keep a split"),
+                                                   sliderInput("SD_slider", label = NA,
+                                                               min = 1, max = 10,
+                                                               step = 0.1,
+                                                               value = 2.5)
+                                                   
+                                            )
+                                            
+                                   ),
+                                   
+                                   fluidRow(id = 'analysis_fusion',class="row-line",
+                                            column(2,checkboxInput("CH_Fusion", label = tags$b("Fusion"), value = TRUE)),
+                                            
+                                            column(2,
+                                                   p("Combine result of TTR and CTR"))
+                                            
+                                   ),
+                                   
+                                   fluidRow(id = 'analysis_dif', class="row-line",
+                                            column(2,checkboxInput("CH_Differential", label = tags$b("Differential"), value = TRUE)),
+                                            
+                                            column(2, p("Detection of differences between the two experiments. ")),
+                                            
+                                            column(2,selectInput("select_method_differential", label = NA,
+                                                                 choices = list("Euclidean method" = "Euclidean method", 
+                                                                                "Mean method" = "Mean method",
+                                                                                "Segment method" = "Segment method"
+                                                                 ), 
+                                                                 selected = "Mean method")
+                                            ),
+                                            column(3,
+                                                   p(textOutput("Differential_description"))
+                                            ),
+                                            
+                                            
+                                            column(3,
+                                                   tags$b("P-value threshold :", id = "PVT1"),
+                                                   numericInput("num_PVT", label = NA, value = 0.05,
+                                                                min = 0, max = 1),
+                                                   
+                                                   tags$b("Method for adjusting the Pvalue :", id = "APV1"),
+                                                   selectInput("select_method_ad_PV", label = NA,
+                                                               choices = list("holm" = "holm", 
+                                                                              "hochberg" = "hochberg", 
+                                                                              "hommel" = "hommel", 
+                                                                              "bonferroni" = "bonferroni", 
+                                                                              "BH" = "BH", 
+                                                                              "BY" = "BY",
+                                                                              "fdr" = "fdr", 
+                                                                              "none" = "none"
+                                                               ), 
+                                                               selected = "holm"),
+                                                   p(textOutput("ad_PV_description"), id = "APV3"),
+                                                   
+                                                   tags$b("Windows size :", id = "WS1"),
+                                                   p("Sliding window length", id = "WS2"),
+                                                   numericInput("num_WS", label = NA, value = 60,
+                                                                min = 10, max = 1000),
+                                                   
+                                                   tags$b("Overlap :", id = "Over1"),
+                                                   p("Size of the overlap of the sliding window", id = "Over2"),
+                                                   numericInput("num_Over", label = NA, value = 30,
+                                                                min = 5, max = 500),
+                                                   
+                                                   tags$b("New parameter :", id = "NP1"),
+                                                   p("Explication of New parameter",  id = "NP2"),
+                                                   numericInput("num_NP", label = NA, value = 0.45,
+                                                                min = 0, max = 1)
+                                                   
+                                            )
+                                   ),
+                                   tags$br(),tags$br(),
+                                   actionButton('NextS5', 'Next'),
+                                   actionButton('PrevS3', 'Prev.')
+                                   
+                          ),
+                          #==================================================
+                          # Slide 5 - Outputs
+                          #==================================================
+                          
+                          tabPanel(title = "Outputs", value = "Step5", 
+                                   HTML('<progress value="84" max="100"></progress>'),
+                                   h1("Outputs"),
+                                   fluidRow(
+                                     column(6,
+                                            radioButtons("file_outputs", h3("File Outputs (positions,intensity,...)"),
+                                                         choices = list(".bed" = "bed", ".txt" = "txt", "both" = "both"),
+                                                         selected = "both")),
+                                     column(6,
+                                            radioButtons("graphical_outputs", h3("Graphical outputs"),
+                                                         choices = list("Yes" = "Yes", "No" = "No"),
+                                                         selected = "Yes"))
+                                   ),
+                                   
+                                   actionButton('NextS6', 'Next'),
+                                   actionButton('PrevS4', 'Prev.')
+                          ), 
+                          #==================================================
+                          # Slide 6 - Summary
+                          #==================================================
+                          
+                          tabPanel(title = "Summary", value = "Step6",
+                                   HTML('<progress value="100" max="100"></progress>'),
+                                   h1("Summary"),
+                                   
+                                   h3("General informations"),  
+                                   fluidRow(
+                                     column(12, 
+                                            textOutput("Out_orga"), 
+                                            textOutput("Out_dif") 
+                                     )),
+                                   
+                                   h3("Selected Files"),
+                                   fluidRow(
+                                     column(12,  
+                                            h4("Experience 1"),
+                                            h5("Replica 1"),
+                                            textOutput("Out_file_E1_R1"),
+                                            h5("Replica 2"),
+                                            textOutput("Out_file_E1_R2"),
+                                            h4("Experience 2"),
+                                            h5("Replica 1"),
+                                            textOutput("Out_file_E2_R1"),
+                                            h5("Replica 2"),
+                                            textOutput("Out_file_E2_R2")
+                                     )),
+                                   
+                                   h3("Normalisation"), 
+                                   fluidRow(column(12, 
+                                                   textOutput("Out_intra_array") ,
+                                                   textOutput("Out_inter_replica") ,
+                                                   textOutput("Out_inter_experience") 
+                                   )),
+                                   
+                                   h3("Analysis"),
+                                   fluidRow( 
+                                     column(3,
+                                            h4("Smooth"),
+                                            textOutput("Out_smooth") ,
+                                            textOutput("Out_smooth_method") ,
+                                            textOutput("Out_smooth_span") ,
+                                            textOutput("Out_smooth_size")
+                                     ),
+                                     column(3,
+                                            h4("TTR"),
+                                            textOutput("Out_TTR")
+                                     ),
+                                     
+                                     column(3,
+                                            h4("Segmentation"),
+                                            textOutput("Out_segmentation") ,
+                                            textOutput("Out_segmentation_SD")
+                                     ),
+                                     column(3,
+                                            h4("Differential"),
+                                            textOutput("Out_differential") ,
+                                            textOutput("Out_differential_method") ,
+                                            textOutput("Out_differential_PVT") ,
+                                            textOutput("Out_differential_PVAD"),
+                                            textOutput("Out_differential_NP"),
+                                            textOutput("Out_differential_Over"),
+                                            textOutput("Out_differential_WS")
+                                     )
+                                   ),
+                                   
+                                   h3("Outputs"), 
+                                   fluidRow(
+                                     column(12, 
+                                            textOutput("Out_outputs_folder") ,
+                                            textOutput("Out_outputs_file") ,
+                                            textOutput("Out_outputs_graphical")
+                                     )
+                                   ),
+                                   actionButton('Validate', 'Validate'),
+                                   actionButton('PrevS5', 'Prev.')
                           ),
                           
-                          h2("Inter experience"),
-                          p("Short description"),
-                          fluidRow(
-                            column(3,radioButtons("RBinter_experience", h4("Methods"),
-                                                  choices = list("standardization" = "n1", 
-                                                                 "without normalization" = "n0",
-                                                                 "unitization" = "n3"), 
-                                                 selected = "n1")),
-                            column(3,
-                                   h4("Description"),
-                                   textOutput("Inter_experience_description")
-                            ),
-                            column(6,
-                                   plotOutput("scatterPlot_inter_experience")
-                            )
-                          ),
-                          
-                          
-                          column(12,h4("Cumulative normalisation visalisation"),
-                                 p("Cumulative visualization is an example of the sequence
-                                   of normalizations as performed in START-R."),
-                                 plotOutput("scatterPlot_cumulative")
-                          ),
-                          
-                          
-                          actionButton('NextS4', 'Next'),
-                          actionButton('PrevS2', 'Prev.')
-                  
-                 ),
-                 
-                #==================================================
-                # Slide 4 - Analysis
-                #==================================================
-                
-                tabPanel(title = "Analysis ", value = "Step4", 
-                         HTML('<progress value="67" max="100"></progress>'),
-                         
-                         fluidRow(column(1,h4("Steps")),
-                                  column(3, h4("Objective")),
-                                  column(2, h4("Method")),
-                                  column(3,h4("Method description")),
-                                  column(3,h4("Additional options"))
-                         ),
-                         
-                         
-                         fluidRow(
-                           column(1,checkboxInput("CH_Smooth", label = tags$b("Smooth"), value = TRUE)),
-                           
-                           column(3, p("Smooth description and objectives")),
-                           
-                           column(2,selectInput("select_method_smmoth", label = NA,
-                                                choices = list("Loess" = "Loess", 
-                                                              "Simple" = "s",
-                                                               "Triangular" = "t", 
-                                                               "Weighted" = "w",
-                                                               "Modified" = "m", 
-                                                               "Exponential" = "e", 
-                                                               "Running" = "r"
-                                                ), 
-                                                selected = "loess")
-                           ),
-                           column(3,
-                              p(textOutput("Smooth_method_description"))
-                           ),
-                           
-                           column(3,
-                                  h5("Span :"),
-                                  p("Explication of span"),
-                                  sliderInput("span_slider", label = NA,
-                                              min = 100000, max = 10000000,
-                                              step = 100000,
-                                              value = 500000),
-                                  
-                                  h5("Windows size :"),
-                                  p("Explication of size"),
-                                  sliderInput("size_slider", label = NA,
-                                              min = 10, max = 1000,
-                                              step = 10,
-                                              value = 1)
-                                 
-                                  )
-                           
-                           ),
-                         
-                         fluidRow(
-                           column(1,checkboxInput("CH_TTR", label = tags$b("TTR"), value = TRUE)),
-                           
-                           column(3,
-                                  p("TTR description and objectives"))
-                           
-                         ),
-                         fluidRow(
-                           column(1,checkboxInput("CH_segmentation", label = tags$b("Segmentation"), value = TRUE)),
-                           
-                           column(3, p("Segmentation description and objectives")),
-                           
-                           column(2),
-                           column(3),
-                           
-                           column(3,
-                                  h5("Windows size :"),
-                                  p("Explication of SD"),
-                                  sliderInput("SD_slider", label = NA,
-                                              min = 1, max = 10,
-                                              step = 0.1,
-                                              value = 2.5)
-                                  
-                           )
-                           
-                         ),
-                         
-                         fluidRow(id = 'analysis_fusion',
-                           column(1,checkboxInput("CH_Fusion", label = tags$b("Fusion"), value = TRUE)),
-                           
-                           column(3,
-                                  p("Combine result of TTR and CTR"))
-                           
-                         ),
-                         
-                         fluidRow(id = 'analysis_dif',
-                           column(1,checkboxInput("CH_Differential", label = tags$b("Differential"), value = TRUE)),
-                           
-                           column(3, p("Differntial description and objectives")),
-                           
-                           column(2,selectInput("select_method_differential", label = NA,
-                                                choices = list("Euclidean method" = "Euclidean method", 
-                                                               "Mean method" = "Mean method",
-                                                               "Segment method" = "Segment method"
-                                                ), 
-                                                selected = "Mean method")
-                           ),
-                           column(3,
-                                  p(textOutput("Differential_description"))
-                           ),
-                           
-                           
-                           column(3,
-                                  h5("P-value threshold :", id = "PVT1"),
-                                  p("Explication of P-value threshold", id = "PVT2"),
-                                  numericInput("num_PVT", label = NA, value = 0.05,
-                                               min = 0, max = 1),
-                                  
-                                  h5("Adjusted P-value :", id = "APV1"),
-                                  p("Explication of Adjusted P-value", id = "APV2"),
-                                  selectInput("select_method_ad_PV", label = NA,
-                                              choices = list("holm" = "holm", 
-                                                             "hochberg" = "hochberg", 
-                                                             "hommel" = "hommel", 
-                                                             "bonferroni" = "bonferroni", 
-                                                             "BH" = "BH", 
-                                                             "BY" = "BY",
-                                                             "fdr" = "fdr", 
-                                                             "none" = "none"
-                                              ), 
-                                              selected = "holm"),
-                                  p(textOutput("ad_PV_description"), id = "APV3"),
-                                  
-                                  h5("Windows size :", id = "WS1"),
-                                  p("Explication of Windows size", id = "WS2"),
-                                  numericInput("num_WS", label = NA, value = 60,
-                                               min = 10, max = 1000),
-                                  
-                                  h5("Overlap :", id = "Over1"),
-                                  p("Explication of Overlap", id = "Over2"),
-                                  numericInput("num_Over", label = NA, value = 30,
-                                               min = 5, max = 500),
-                                  
-                                  h5("New parameter :", id = "NP1"),
-                                  p("Explication of New parameter",  id = "NP2"),
-                                  numericInput("num_NP", label = NA, value = 0.45,
-                                               min = 0, max = 1)
-                                  
-                           )
-                         ),
-                                      
-                         actionButton('NextS5', 'Next'),
-                         actionButton('PrevS3', 'Prev.')
-                
-                ),
-                #==================================================
-                # Slide 5 - Outputs
-                #==================================================
-                
-                tabPanel(title = "Outputs", value = "Step5", 
-                         HTML('<progress value="84" max="100"></progress>'),
-                         h1("Outputs"),
-                         
-                         # h3('Folder output'),
-                         # p("Folder where analyses will be recorded"),
-                         # shinyDirButton("dir", "Chose directory", "Upload"),
-                         
-                         #shinyDirButton('directory', 'Folder select', 'Please select a folder', class = "Select_folder"),
-                         #textOutput("Select_dir"),
-                         
-                         radioButtons("file_outputs", h3("File Outputs (positions,intensity,...)"),
-                                      choices = list(".bed" = "bed", ".txt" = "txt", "both" = "both"),
-                                      selected = "both"),
-                         
-                         radioButtons("graphical_outputs", h3("Graphical outputs"),
-                                      choices = list("Yes" = "Yes", "No" = "No"),
-                                      selected = "Yes"),
-                          
-                         actionButton('NextS6', 'Next'),
-                         actionButton('PrevS4', 'Prev.')
-                ), 
-                #==================================================
-                # Slide 6 - Summary
-                #==================================================
-                
-                 tabPanel(title = "Summary", value = "Step6",
-                          HTML('<progress value="100" max="100"></progress>'),
-                          h1("Summary"),
-                           
-                          fluidRow(
-                            column(12, h3("General informations"), 
-                                   textOutput("Out_orga"), 
-                                   textOutput("Out_dif") 
-                            )),
-                          fluidRow(
-                            column(12, h3("Selected Files"), 
-                                   h4("Experience 1"),
-                                   h5("Replica 1"),
-                                   textOutput("Out_file_E1_R1"),
-                                   h5("Replica 2"),
-                                   textOutput("Out_file_E1_R2"),
-                                   h4("Experience 2"),
-                                   h5("Replica 1"),
-                                   textOutput("Out_file_E2_R1"),
-                                   h5("Replica 2"),
-                                   textOutput("Out_file_E2_R2")
-                            )),
-                          
-                          fluidRow(column(12, h3("Normalisation"), 
-                                   textOutput("Out_intra_array") ,
-                                   textOutput("Out_inter_replica") ,
-                                   textOutput("Out_inter_experience") 
-                            )),
-                          fluidRow( 
-                            column(3,h3("Analysis"),
-                                   h4("Smooth"),
-                                   textOutput("Out_smooth") ,
-                                   textOutput("Out_smooth_method") ,
-                                   textOutput("Out_smooth_span") ,
-                                   textOutput("Out_smooth_size")
-                            ),
-                            column(3,
-                                   h4("TTR"),
-                                   textOutput("Out_TTR")
-                            ),
-                            
-                            column(3,
-                                     h4("Segmentation"),
-                                     textOutput("Out_segmentation") ,
-                                     textOutput("Out_segmentation_SD")
-                            ),
-                            column(3,
-                                     h4("Differential"),
-                                     textOutput("Out_differential") ,
-                                     textOutput("Out_differential_method") ,
-                                     textOutput("Out_differential_PVT") ,
-                                     textOutput("Out_differential_PVAD"),
-                                     textOutput("Out_differential_NP"),
-                                     textOutput("Out_differential_Over"),
-                                     textOutput("Out_differential_WS")
-                            )
-                            ),
-                          fluidRow(
-                            column(12, h3("Outputs"), 
-                                   textOutput("Out_outputs_folder") ,
-                                   textOutput("Out_outputs_file") ,
-                                   textOutput("Out_outputs_graphical")
-                            )
-                          ),
-                          actionButton('Validate', 'Validate'),
-                          actionButton('PrevS5', 'Prev.')
-                ),
-                
-                #==================================================
-                # Slide 6 - Processing/ENd
-                #==================================================
-                tabPanel(title = "Job", value = "Job",
-                         
-                         h1('Click to run analysis', id = "H1_Run", align = "center"),
-                         actionButton('Run', 'Run !', class="run"),
-                         
-                         h1('Processing', id = "H1_processing", align = "center"),
-                         img(src = "process.gif", class = "process", id = "img_processing"),
-                         
-                         
-                         h1('The analysis was successful!', id = "End", align = "center"),
-                         #img(src = "end.gif", class = "end", id = "img_end")
-                         HTML('<div class="checkmark" id = "img_end">
+                          #==================================================
+                          # Slide 6 - Processing/ENd
+                          #==================================================
+                          tabPanel(title = "Job", value = "Job",
+                                   
+                                   h1('Click to run analysis', id = "H1_Run", align = "center"),
+                                   actionButton('Run', 'Run !', class="run"),
+                                   
+                                   h1('Processing', id = "H1_processing", align = "center"),
+                                   img(src = "process.gif", class = "process", id = "img_processing"),
+                                   
+                                   
+                                   h1('The analysis was successful!', id = "End", align = "center"),
+                                   #img(src = "end.gif", class = "end", id = "img_end")
+                                   HTML('<div class="checkmark" id = "img_end">
                               <svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
                               viewBox="0 0 161.2 161.2" enable-background="new 0 0 161.2 161.2" xml:space="preserve">
                               <path class="path" fill="none" stroke="#31B404" stroke-miterlimit="10" d="M425.9,52.1L425.9,52.1c-2.2-2.6-6-2.6-8.3-0.1l-42.7,46.2l-14.3-16.4
@@ -700,34 +707,21 @@ ui <- tagList( useShinyjs(),
                               
                               </svg>
                               ')
-                        
-                         )
-  )
+                                   
+                          )
+               )
 )
 
 ###################################################################################################
-###################################################################################################
+# Server 
 ###################################################################################################
 
 
 server <- function(input, output, session) {
   
-  #========================================
-  # Select folder
-  #========================================
-  # 
-  # volumes <- getVolumes()
-  # shinyDirChoose(input, 'directory', roots=volumes, session=session)
-  # 
-  # path1 <- reactive({
-  #   return(parseDirPath(volumes, input$directory))
-  # })
-  # 
-  # 
-  # output$Select_dir <- renderText({ 
-  #   #paste("Output folder :", readDirectoryInput(session, 'directory'))
-  #   paste("Output folder :", path1())
-  # })
+  #=============================================================================
+  # Directory
+  #=============================================================================
   
   # dir
   shinyDirChoose(input, 'dir', roots = c(home = '~'), filetypes = c('', 'txt'))
@@ -764,7 +758,7 @@ server <- function(input, output, session) {
   })
   
   observe({
-     hideTab(inputId = "Workflow", target = "Step5")
+    hideTab(inputId = "Workflow", target = "Step5")
   })
   
   observe({
@@ -796,13 +790,14 @@ server <- function(input, output, session) {
   })
   
   
-  #========================================
+  #=============================================================================
   # Button Nav workflow
-  #========================================
+  #=============================================================================
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Pres
-  #---------
+  #-----------------------------------------------------------------------------
+  
   observeEvent(input$NextS1, {
     # Show next page in navbar
     showTab(inputId = "Workflow", target = "Step1")
@@ -812,9 +807,9 @@ server <- function(input, output, session) {
                       selected = "Step1")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 1
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$NextS2, {
     # Show next page in navbar
     showTab(inputId = "Workflow", target = "Step2")
@@ -829,9 +824,9 @@ server <- function(input, output, session) {
                       selected = "pres")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 2 
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$PrevS1, {
     updateTabsetPanel(session, "Workflow",
                       selected = "Step1")
@@ -846,9 +841,9 @@ server <- function(input, output, session) {
                       selected = "Step3")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 3 
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$PrevS2, {
     updateTabsetPanel(session, "Workflow",
                       selected = "Step2")
@@ -863,9 +858,9 @@ server <- function(input, output, session) {
                       selected = "Step4")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 4 
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$PrevS3, {
     updateTabsetPanel(session, "Workflow",
                       selected = "Step3")
@@ -880,9 +875,9 @@ server <- function(input, output, session) {
                       selected = "Step5")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 5 
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$PrevS4, {
     updateTabsetPanel(session, "Workflow",
                       selected = "Step4")
@@ -897,9 +892,9 @@ server <- function(input, output, session) {
                       selected = "Step6")
   })
   
-  #---------
+  #-----------------------------------------------------------------------------
   # Step 6 
-  #---------
+  #-----------------------------------------------------------------------------
   observeEvent(input$PrevS5, {
     updateTabsetPanel(session, "Workflow",
                       selected = "Step5")
@@ -914,21 +909,17 @@ server <- function(input, output, session) {
                       selected = "Job")
   })
   
-  #========================================
+  #=============================================================================
   # Init
-  #========================================
-
+  #=============================================================================
+  
   output$orga_img <- renderUI({
     img(src = paste0(input$organism, ".svg"), height = 100, class = "center")
   })
   
-  #========================================
-  # Read File
-  #========================================
-  
-  # observeEvent(input$reset_E1_R1, {
-  #   reset("file_E1_R1")
-  # })
+  #=============================================================================
+  # Import Data
+  #=============================================================================
   
   output$contents_E1_R1 <-  renderDataTable({
     
@@ -940,7 +931,7 @@ server <- function(input, output, session) {
                    quote = input$quote_E1_R1,
                    nrows=100,
                    skip = input$skip_E1_R1
-                   )
+    )
     
     if(input$disp_E1_R1 == "head") {
       return(head(df))
@@ -1021,10 +1012,11 @@ server <- function(input, output, session) {
     }
     
   },  options = list(scrollX = TRUE))
- 
-  #========================================
+  
+  #=============================================================================
   # Read File - Adv
-  #======================================== 
+  #=============================================================================
+  
   observeEvent(input$Late_frac, {
     if(input$Late_frac == "Cy3"){
       updateRadioButtons(session, "Early_frac", selected = "Cy5")
@@ -1041,9 +1033,9 @@ server <- function(input, output, session) {
     }
   })
   
-  #========================================
+  #=============================================================================
   # Read File - next
-  #========================================
+  #=============================================================================
   
   observe({
     if(input$dif == "No") {
@@ -1059,29 +1051,28 @@ server <- function(input, output, session) {
         enable("NextS3")
       }
     }
-
+    
   })
   
-  
-  #---------------------------
+  #=============================================================================
   # Show/hide dif Read file
-  #---------------------------
+  #=============================================================================
   
   observeEvent(input$dif, {
     if(input$dif == "Yes"){
-        showElement(id = "row_E2_R1")
-        showElement(id = "row_E2_R2")
-        showElement(id = "title_E2")
-        showElement(id = "analysis_dif")
-        updateCheckboxInput(session, "CH_Smooth", value = TRUE)
-        updateCheckboxInput(session, "CH_TTR", value = TRUE)
-        updateCheckboxInput(session, "CH_segmentation", value = TRUE)
-        updateCheckboxInput(session, "CH_Fusion", value = TRUE)
-        disable("CH_Smooth")
-        disable("CH_TTR")
-        disable("CH_segmentation")
-        disable("CH_Fusion")
-
+      showElement(id = "row_E2_R1")
+      showElement(id = "row_E2_R2")
+      showElement(id = "title_E2")
+      showElement(id = "analysis_dif")
+      updateCheckboxInput(session, "CH_Smooth", value = TRUE)
+      updateCheckboxInput(session, "CH_TTR", value = TRUE)
+      updateCheckboxInput(session, "CH_segmentation", value = TRUE)
+      updateCheckboxInput(session, "CH_Fusion", value = TRUE)
+      disable("CH_Smooth")
+      disable("CH_TTR")
+      disable("CH_segmentation")
+      disable("CH_Fusion")
+      
     }else{
       hideElement(id = "row_E2_R1")
       hideElement(id = "row_E2_R2")
@@ -1094,30 +1085,22 @@ server <- function(input, output, session) {
     }
   })
   
-  #---------------------------------------
-  # Advanced file parameters
-  #---------------------------------------
-  observeEvent(input$button, {
-    
-    if(input$button %% 2 != 1){
-      shinyjs::hide(id = "Ad_file_box")
-    }else{
-      shinyjs::show(id = "Ad_file_box")
-    }
-  })
   
-  
-  #========================================
+  #=============================================================================
   # Description - Normalisation
-  #========================================
+  #=============================================================================
   
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Description - Intra array
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   output$Intra_array_description <- renderText({ 
     
     if(input$RBintra_array == "loess"){
-      "Description of loess"
+      'The loess normalization methods ("loess", "printtiploess" and "composite") 
+      were proposed by Yang et al (2001, 2002). Smyth and Speed (2003) review 
+      these methods and describe how the methods are implemented in the limma package, 
+      including choices of tuning parameters. More information on the loess control 
+      parameters span and iterations can be found under loessFit.'
     } else if(input$RBintra_array == "control"){
       "Oshlack et al (2004) consider the special issues that arise when a large 
       proportion of probes are differentially expressed. They propose an improved 
@@ -1126,9 +1109,17 @@ server <- function(input, output, session) {
       of control spots, such as a whole-library titration series, and applies 
       that curve to all the other spots."
     }else if(input$RBintra_array == "composite"){
-      "Description of composite"
+      'The loess normalization methods ("loess", "printtiploess" and "composite") 
+      were proposed by Yang et al (2001, 2002). Smyth and Speed (2003) review 
+      these methods and describe how the methods are implemented in the limma package, 
+      including choices of tuning parameters. More information on the loess control 
+      parameters span and iterations can be found under loessFit.'
     }else if(input$RBintra_array == "printtiploess"){
-      "Description of printtiploess"
+      'The loess normalization methods ("loess", "printtiploess" and "composite") 
+      were proposed by Yang et al (2001, 2002). Smyth and Speed (2003) review 
+      these methods and describe how the methods are implemented in the limma package, 
+      including choices of tuning parameters. More information on the loess control 
+      parameters span and iterations can be found under loessFit.'
     }else if(input$RBintra_array == "median"){
       "Method median subtracts the weighted median from the M-values for each array"
     }else if(input$RBintra_array == "none"){
@@ -1139,19 +1130,9 @@ server <- function(input, output, session) {
     }
   })
   
-  output$scatterPlot_intra_array <- renderPlot({
-    #MA.l = normalizeWithinArrays(plot_test, method=input$RBintra_array) 
-    
-    matplot(cbind(plot_test ), type = "l", 
-            lwd = c(1,1,2,2), lty = c(3,3,1,1),
-            col = c("royalblue", "red", "royalblue", "red"),
-            ylab = "Intensity", xlab = "Position" ,
-            main = "Visualisation")
-  })
-  
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Description - Inter replica
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   
   output$Inter_replica_description <- renderText({ 
     
@@ -1173,22 +1154,10 @@ server <- function(input, output, session) {
     }
   })
   
-  
-  output$scatterPlot_inter_replica <- renderPlot({
-    MA.q = normalizeBetweenArrays(plot_test, method=input$RBinter_replica)
-   
-    matplot(cbind(plot_test , MA.q), type = "l", 
-            lwd = c(1,1,2,2), lty = c(3,3,1,1),
-            col = c("royalblue", "red", "royalblue", "red"),
-            ylab = "Intensity", xlab = "Position",
-            main = "Visualisation")
-  })
- 
-  
-  #----------------------------------------
+  #-----------------------------------------------------------------------------
   # Description - Inter experience
-  #----------------------------------------
-
+  #-----------------------------------------------------------------------------
+  
   # data.Normalization
   output$Inter_experience_description <- renderText({ 
     
@@ -1199,46 +1168,20 @@ server <- function(input, output, session) {
     }else if(input$RBinter_experience == "n3"){
       "(x-mean)/range"
     }
-    })
-  
-  
-  output$scatterPlot_inter_experience <- renderPlot({
-    z1 <- data.Normalization(plot_test,type=input$RBinter_experience,
-                             normalization="column")
-    matplot(cbind(plot_test , z1), type = "l", 
-            lwd = c(1,1,2,2), lty = c(3,3,1,1),
-            col = c("royalblue", "red", "royalblue", "red"),
-            ylab = "Intensity", xlab = "Position" ,
-            main = "Visualisation")
   })
   
-  #----------------------------------------
-  # Description - Cumulative
-  #----------------------------------------
+  #=============================================================================
+  # Analysis description 
+  #=============================================================================
   
-  output$scatterPlot_cumulative <- renderPlot({
-    
-    MA.q = normalizeBetweenArrays(plot_test, method=input$RBinter_replica)
-    
-    z1 <- data.Normalization(MA.q,type=input$RBinter_experience,
-                             normalization="column")
-    
-    matplot(cbind(plot_test , z1), type = "l", 
-            lwd = c(1,1,2,2), lty = c(3,3,1,1),
-            col = c("royalblue", "red", "royalblue", "red"),
-            ylab = "Intensity", xlab = "Position",
-            main = "Visualisation")
-  })
-  
-  
-  #========================================
+  #-----------------------------------------------------------------------------
   # Description - Smooth
-  #========================================
+  #-----------------------------------------------------------------------------
   
   output$Smooth_method_description <- renderText({ 
-  
-    if(input$select_method_smmoth== "loess"){
-      "Description of loess"
+    
+    if(input$select_method_smmoth== "Loess"){
+      "Fit a polynomial surface determined by one or more numerical predictors, using local fitting."
     } else if(input$select_method_smmoth == "s"){
       "It computes the simple moving average. n indicates the number of previous 
       data points used with the current data point when calculating the moving average"
@@ -1258,38 +1201,36 @@ server <- function(input, output, session) {
       moving average is a weighted moving average that reduces influences by 
       applying more weight to recent data points () reduction factor 2/(n+1)."
     }else if(input$select_method_smmoth == "r"){
-      "Ihis is an exponential moving average with a reduction factor of 1/n ["
+      "This is an exponential moving average with a reduction factor of 1/n"
     }
-    })
+  })
   
-  #========================================
+  #-----------------------------------------------------------------------------
   # Description - Differential
-  #========================================
+  #-----------------------------------------------------------------------------
   
   output$Differential_description <- renderText({ 
     
     if(input$select_method_differential == "Euclidean method"){
-      "Description of Euclidean method"
+      "Detection of differences by calculating the difference squared"
     } else if(input$select_method_differential == "Mean method"){
-      "Description of Mean method"
+      "Detection of differences by a sliding window"
     }else if(input$select_method_differential == "Segment method"){
-      "Description of Segment method"
+      "Detection of differences using CTRs and TTRs information"
     }
   })
   
-  #========================================
+  #-----------------------------------------------------------------------------
   # show / hide - differential
-  #========================================
+  #-----------------------------------------------------------------------------
   
-
+  
   observeEvent(input$select_method_differential, {
     if(input$select_method_differential == "Euclidean method"){
       showElement(id = "PVT1")
-      showElement(id = "PVT2")
       showElement(id = "num_PVT")
       
       showElement(id = "APV1")
-      showElement(id = "APV2")
       showElement(id = "APV3")
       
       showElement(id = "WS1")
@@ -1306,11 +1247,9 @@ server <- function(input, output, session) {
       
     }else if(input$select_method_differential == "Mean method"){
       showElement(id = "PVT1")
-      showElement(id = "PVT2")
       showElement(id = "num_PVT")
       
       showElement(id = "APV1")
-      showElement(id = "APV2")
       showElement(id = "APV3")
       
       showElement(id = "WS1")
@@ -1327,11 +1266,9 @@ server <- function(input, output, session) {
       
     }else if (input$select_method_differential == "Segment method"){
       hideElement(id = "PVT1")
-      hideElement(id = "PVT2")
       hideElement(id = "num_PVT")
       
       hideElement(id = "APV1")
-      hideElement(id = "APV2")
       hideElement(id = "APV3")
       
       hideElement(id = "WS1")
@@ -1348,34 +1285,63 @@ server <- function(input, output, session) {
     }
   })
   
-  #========================================
+  #-----------------------------------------------------------------------------
   # Description - Differential - adjusted pval
-  #========================================
+  #-----------------------------------------------------------------------------
   
   output$ad_PV_description <- renderText({ 
     if(input$select_method_ad_PV == "holm"){
-      "Description of holm"
+      "The Holm, Hochberg, Hommel and Benjamini & Hochberg methods are designed to give strong control of the
+      family-wise error rate.  There seems no reason to use the
+      unmodified Bonferroni correction because it is dominated by Holm's
+      method, which is also valid under arbitrary assumptions."
     } else if(input$select_method_ad_PV == "hochberg"){
-      "Description of hochberg"
+      "Hochberg's and Hommel's methods are valid when the hypothesis
+      tests are independent or when they are non-negatively associated
+      (Sarkar, 1998; Sarkar and Chang, 1997).  Hommel's method is more
+      powerful than Hochberg's, but the difference is usually small and
+      the Hochberg p-values are faster to compute."
     }else if(input$select_method_ad_PV == "hommel"){
-      "Description of hommel"
+      "Hochberg's and Hommel's methods are valid when the hypothesis
+      tests are independent or when they are non-negatively associated
+      (Sarkar, 1998; Sarkar and Chang, 1997).  Hommel's method is more
+      powerful than Hochberg's, but the difference is usually small and
+      the Hochberg p-values are faster to compute."
     }else if(input$select_method_ad_PV == "bonferroni"){
-      "Description of bonferroni"
+      "The adjustment methods include the Bonferroni correction in which the p-values are multiplied by the number of comparisons."
     }else if(input$select_method_ad_PV == "BH"){
-      "Description of BH"
+      "The method of Benjamini, Hochberg,
+      and Yekutieli control the false discovery rate, the expected
+      proportion of false discoveries amongst the rejected hypotheses.
+      The false discovery rate is a less stringent condition than the
+      family-wise error rate, so these methods are more powerful than
+      the others.
+      "
     }else if(input$select_method_ad_PV == "BY"){
-      "Description of BY"
+      "The method of Benjamini, Hochberg,
+        and Yekutieli control the false discovery rate, the expected
+        proportion of false discoveries amongst the rejected hypotheses.
+        The false discovery rate is a less stringent condition than the
+        family-wise error rate, so these methods are more powerful than
+        the others.
+      "
     }else if(input$select_method_ad_PV == "fdr"){
-      "Description of fdr"
+      "The method of Benjamini, Hochberg,
+      and Yekutieli control the false discovery rate, the expected
+      proportion of false discoveries amongst the rejected hypotheses.
+      The false discovery rate is a less stringent condition than the
+      family-wise error rate, so these methods are more powerful than
+      the others.
+      "
     }else if(input$select_method_ad_PV == "none"){
-      "Description of none"
+      "No correction"
     }
   })
   
-  #========================================
+  #=============================================================================
   # Analysis check box
-  #========================================
-
+  #=============================================================================
+  
   observeEvent(input$CH_Smooth, {
     if(input$CH_Smooth == FALSE){
       updateCheckboxInput(session, "CH_TTR", value = FALSE)
@@ -1421,24 +1387,14 @@ server <- function(input, output, session) {
     
   })
   
-  #========================================
-  # Select folder - next
-  #========================================
-  
-  # observe({
-  #   #if(readDirectoryInput(session, 'directory') == ""){
-  #   if(is.null(path1())) { 
-  #     disable("NextS6")
-  #   }else{
-  #     enable("NextS6")
-  #   }
-  # })
-  # 
-  #========================================
+  #=============================================================================
   # Summary
-  #========================================
+  #=============================================================================
   
-  ## Step 1 
+  #-----------------------------------------------------------------------------
+  # Step 1 
+  #-----------------------------------------------------------------------------
+  
   output$Out_orga <- renderText({ 
     paste("Organism :", input$organism)
   })
@@ -1447,7 +1403,10 @@ server <- function(input, output, session) {
     paste("Differential :", input$dif)
   })
   
-  ## Step 2
+  #-----------------------------------------------------------------------------
+  # Step 2
+  #-----------------------------------------------------------------------------
+  
   output$Out_file_E1_R1 <- renderText({ 
     paste("File name :", input$file_E1_R1$name)
   })
@@ -1464,7 +1423,9 @@ server <- function(input, output, session) {
     paste("File name :", input$file_E2_R2$name)
   })
   
-  ## Step 3 - normalisatio
+  #-----------------------------------------------------------------------------
+  # Step 3 - normalisation
+  #-----------------------------------------------------------------------------
   
   output$Out_intra_array <- renderText({ 
     paste("Intra array :", input$RBintra_array)
@@ -1478,7 +1439,9 @@ server <- function(input, output, session) {
     paste("Inter experience :", input$RBinter_experience)
   })
   
-  ## Step 4 - Analyse
+  #-----------------------------------------------------------------------------
+  # Step 4 - Analyse
+  #-----------------------------------------------------------------------------
   
   output$Out_smooth <- renderText({ 
     paste("Realiazed? :", input$CH_Smooth)
@@ -1490,10 +1453,6 @@ server <- function(input, output, session) {
   
   output$Out_smooth_span <- renderText({ 
     paste("Span :", input$span_slider)
-  })
-  
-  output$Out_smooth_size <- renderText({ 
-    paste("Size :", input$size_slider)
   })
   
   output$Out_TTR <- renderText({ 
@@ -1536,13 +1495,6 @@ server <- function(input, output, session) {
     paste("New parameter:", input$num_NP)
   })
   
-  ## Step 5 - Outputs
-
-  # output$Out_outputs_folder <- renderText({ 
-  #   #paste("Output folder :", readDirectoryInput(session, 'directory'))
-  #   paste("Output folder :", path1())
-  # })
-  
   output$Out_outputs_file <- renderText({ 
     paste("File format :", input$file_outputs)
   })
@@ -1552,9 +1504,9 @@ server <- function(input, output, session) {
   })
   
   
-  #========================================
+  #=============================================================================
   # Processing
-  #========================================
+  #=============================================================================
   
   click = FALSE
   observeEvent(input$Run , {
@@ -1589,12 +1541,12 @@ server <- function(input, output, session) {
     }else{
       File4 = input$file_E2_R2$datapath
     }
-
+    
     nomtotal = c(File1 = File1,
-    File2 = File2,
-    File3 = File3,
-    File4 = File4)
-
+                 File2 = File2,
+                 File3 = File3,
+                 File4 = File4)
+    
     sortie_image = input$graphical_outputs
     bed = input$file_outputs
     nor1 = input$RBintra_array 
@@ -1612,13 +1564,13 @@ server <- function(input, output, session) {
     v3 = input$select_method_ad_PV
     v4 = input$select_method_smmoth
     v5 = input$num_WS
-      
+    
     fs1 = input$skip_E1_R1
     fs2 = input$Green_signal 
     fs3 = input$Red_signal 
-    fs4 = input$Late_frac 
-    fs5 = input$Early_frac
-  
+    fs4 = input$Early_frac
+    fs5 = input$Late_frac  
+    
     pv1 = input$num_PVT
     pv2 = input$num_WS
     pv3 = input$select_method_ad_PV
@@ -1628,46 +1580,7 @@ server <- function(input, output, session) {
     seuil = input$num_NP
     organisme = input$organism
     
-    #directory = readDirectoryInput(session, 'directory')
-    # directory = path1()
     directory = "./Outputs"
-    
-    # run
-    
-    
-    
-    # START-R : a Simple tool to analyse Replication Timing with R
-    # 2018 - CNRS - Institut Jacques Monod
-    # Thomas DENECKER - PhD studient - Computational biology
-    # thomas.denecker@gmail.com
-    
-    
-    
-    ################################################################################
-    # Library
-    ################################################################################
-    
-    library(DNAcopy)
-    library(limma)
-    library(SNPchip)
-    library(pracma)
-    library(data.table)
-    library(clusterSim)
-    library(car)
-    require(data.table)
-    library("htmltools")
-    
-    
-    # write.table(c(packageVersion("DNAcopy"),
-    #   packageVersion("limma"),
-    #   packageVersion("SNPchip"),
-    #   packageVersion("pracma"),
-    #   packageVersion("data.table"),
-    #   packageVersion("clusterSim"),
-    #   packageVersion("car")
-    #   ), "testversion.txt")
-    # 
-    # write.table(R.Version()$version.string, "rversion.txt")
     
     ################################################################################
     # Functions
@@ -1698,19 +1611,19 @@ server <- function(input, output, session) {
       tour = 1  
     }
     
-    ################################################################################
+    ############################################################################
     # Main
-    ################################################################################
+    ############################################################################
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Reading of centromers
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     centromer = read.csv2("Inputs/centromere.csv", header = T, sep = "\t")
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Creating a codebook
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     codebook = NULL
     codebook = rbind(codebook, c("File 1 : ",nomtotal[1]))
@@ -1741,13 +1654,13 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("Window size : ",pv2))
     codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
     codebook = rbind(codebook, c("Overlap : ",pv4))
-    codebook = rbind(codebook, c("Type de différence : ",type_dif))
-    codebook = rbind(codebook, c("Seuil de différence (euclydienne): ",type_dif))
+    codebook = rbind(codebook, c("Difference type : ",type_dif))
+    codebook = rbind(codebook, c("Threshold differnce (euclydienne): ",type_dif))
     codebook = rbind(codebook, c("Organism : ",organisme))
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Creation of analysis folder
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     # Today's date to name folder
     date = format(Sys.Date(), "%Y%m%d")
@@ -1778,9 +1691,9 @@ server <- function(input, output, session) {
     
     setwd(directionf)
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Normalisation intra and inter replicats
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     increment = 1
     
@@ -1788,13 +1701,13 @@ server <- function(input, output, session) {
       
       cat("Script R works...")
       
-      #=============================================================================
+      #=========================================================================
       # Analyse preparation
-      #=============================================================================
+      #=========================================================================
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Get filename of replicat
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       nom = nomtotal[increment]
       file.copy(nom, "./")
@@ -1823,9 +1736,9 @@ server <- function(input, output, session) {
       nom2T = removeExt(nom2)
       num = substring(nom,1,4) 
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Analysis of Experience 1 or 2
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       if ( z == 1){
         prefixe = "Experience_1"
@@ -1833,9 +1746,9 @@ server <- function(input, output, session) {
         prefixe = "Experience_2"
       }
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Creation of subfolder
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       dir.create(prefixe, recursive = T)
       # direction = paste(directory,"/",date,"/",prefixe, sep = "")
@@ -1861,13 +1774,13 @@ server <- function(input, output, session) {
       }
       setwd("..")
       
-      #=============================================================================
+      #=========================================================================
       # Normalisation                        
-      #=============================================================================
+      #=========================================================================
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Analysis of data type
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       filename = paste(nomT,".txt",sep="")
       filename2 = paste(nom2T,".txt",sep="")
@@ -1877,18 +1790,18 @@ server <- function(input, output, session) {
       classes <- sapply(tab5rows, class)
       classes2 <- sapply(tab5rows2, class)
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Data extraction
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       mLymph1_Cy5_Cy3 <- read.table(filename,header=T,  comment.char = "", 
                                     colClasses=classes, skip = fs1, sep = "\t")
       mLymph2_Cy5_Cy3 <- read.table(filename2,header=T,  comment.char = "", 
                                     colClasses=classes, skip = fs1, sep = "\t")
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Intensity extraction
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       mLymph1 <- data.frame(S_Cy5 = mLymph1_Cy5_Cy3[,fs2] , 
                             S_Cy3 = mLymph1_Cy5_Cy3[,fs3])
       
@@ -1901,9 +1814,9 @@ server <- function(input, output, session) {
       nom2 = sapply(strsplit(basename(nom2),"\\."), 
                     function(x) paste(x[1:(length(x)-1)], collapse=".")) 
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Save in new format
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       filename = paste(prefixe,"/File_software/",nom,".rgl.txt",sep="")
       write.table(mLymph1,file=filename, row.names=F, quote=F, sep="\t", eol="\r\n")
@@ -1916,9 +1829,9 @@ server <- function(input, output, session) {
       write.table(mLymph2,file=filename2, row.names=F, quote=F, sep="\t", 
                   eol="\r\n")
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Prepare input file for normalisation
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       tab_T = rbind(c("SlideNumber","Name","FileName","Cy3","Cy5"),
                     c("1", "mLymph1", filename,	"late",	"early"),
@@ -1929,12 +1842,11 @@ server <- function(input, output, session) {
       write.table(tab_T,file=filenameT, row.names=F, quote=F, 
                   sep="\t", eol="\r\n", col.names = F)
       
-      ##### Eviter une lecture possible?
       t = read.csv2(filenameT, sep="\t", header = T)
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Read microarray data
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       if (fs4 == "Cy3" & fs5 == "Cy5" ){
         r = read.maimages(t, source="generic",columns=list(R="S_Cy5", G="S_Cy3"))
@@ -1944,21 +1856,21 @@ server <- function(input, output, session) {
         r = read.maimages(t, source="generic",columns=list(R="S_Cy3", G="S_Cy5"))
       }
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Perform intra normalization
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       MA.l = normalizeWithinArrays(r, method=nor1) 
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Perform inter replica normalization
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       MA.q = normalizeBetweenArrays(MA.l, method=nor2)
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Graphical representation of normalisation
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       if(sortie_image == "Yes"){
         filename = paste( prefixe,"/Normalisation/",nom,"_normalisation.pdf", 
@@ -2016,37 +1928,38 @@ server <- function(input, output, session) {
         dev.off()
       }
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # File of normalisation
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
+      
       filename = paste(prefixe,"/Normalisation/",nom,"_normalise.txt",sep="")
       write.table(MA.q$M, file = filename, quote=F, row.names=F, sep="\t")
       
-      #=============================================================================
+      #=========================================================================
       # Position                           
-      #=============================================================================
+      #=========================================================================
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Reading intermediate files
-      #-----------------------------------------------------------------------------
-      ##### Eviter une lecture possible?
+      #-------------------------------------------------------------------------
+      
       filename = paste(prefixe,"/Normalisation/",nom,"_normalise.txt",sep="")
       tab5rows = read.table(filename, header = T, nrows = 5)
       classes = sapply(tab5rows, class)
       RT = read.table(filename, header=T, comment.char = "", colClasses=classes)
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Reading original files
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       filename = paste(nomT,".txt",sep="")
       tab5rows = tab5rows_sauve 
       classes = sapply(tab5rows, class)
       a = read.table(filename, header=T, comment.char = "",colClasses=classes, 
                      skip = fs1, sep = "\t")
       
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       # Chromosome selection only
-      #-----------------------------------------------------------------------------
+      #-------------------------------------------------------------------------
       
       vect = NULL
       for ( i in 1:dim(a)[1]){
@@ -2086,13 +1999,13 @@ server <- function(input, output, session) {
       filename = paste(prefixe,"/File_software/",nom,"_average.txt",sep="")
       write.table(RT,filename, row.names=F, quote=F, sep="\t")
       
-      #=============================================================================
+      #=========================================================================
       # Autocorrelation                         
-      #=============================================================================
+      #=========================================================================
       
       num = substring(nom,1,4) 
       if(sortie_image == "Yes"){
-        ## enregistrer en image d'autocorrelation
+        
         filename = paste(prefixe,"/Autocorrelation/autocorrelation_",num,".pdf", 
                          sep="")
         pdf(filename)
@@ -2104,14 +2017,14 @@ server <- function(input, output, session) {
       }
     }
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Normalisation between experiences
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     if (e5 == TRUE){
-      #=============================================================================
+      #=========================================================================
       # Get data of Experience 1 
-      #=============================================================================
+      #=========================================================================
       prefixe = "Experience_1"
       nom = "E1_R1.txt"
       nom = sapply(strsplit(basename(nom),"\\."), 
@@ -2119,9 +2032,9 @@ server <- function(input, output, session) {
       data_a_nor1 = read.table(paste(prefixe,"/File_software/",nom,"_average.txt",
                                      sep=""), header = T)
       
-      #=============================================================================
+      #=========================================================================
       # Get data of Experience 2 
-      #=============================================================================
+      #=========================================================================
       prefixe = "Experience_2"
       nom = "E2_R1.txt"
       nom = sapply(strsplit(basename(nom),"\\."), 
@@ -2129,18 +2042,20 @@ server <- function(input, output, session) {
       data_a_nor2 = read.table(paste(prefixe,"/File_software/",nom,"_average.txt",
                                      sep=""), header = T)
       
-      #=============================================================================
+      #=========================================================================
       # Normalisation
-      #=============================================================================
+      #=========================================================================
+      
       RTT = as.data.frame(cbind(data_a_nor1$mLymphAve,data_a_nor2$mLymphAve))
       RTTn = data.Normalization(RTT, normalization="column", type=nor3)
       
       data_a_nor1$mLymphAve = RTTn$V1
       data_a_nor2$mLymphAve = RTTn$V2
       
-      #=============================================================================
+      #=========================================================================
       # Write normalized data of Experience 1 
-      #=============================================================================
+      #=========================================================================
+      
       prefixe = "Experience_1"
       nom = "E1_R1.txt"
       
@@ -2149,9 +2064,9 @@ server <- function(input, output, session) {
       filename = paste(prefixe,"/File_software/",nom,"_average.txt",sep="")
       write.table( data_a_nor1,filename, row.names=F, quote=F, sep="\t")
       
-      #=============================================================================
+      #=========================================================================
       # Write normalized data of Experience 2 
-      #=============================================================================
+      #=========================================================================
       prefixe = "Experience_2"
       nom = "E2_R1.txt"
       nom = sapply(strsplit(basename(nom),"\\."), 
@@ -2161,17 +2076,17 @@ server <- function(input, output, session) {
       
     }
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Smooth - TTR - CTR
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     increment = 1
     
     for (z in 1 : tour){
       
-      #=============================================================================
+      #=========================================================================
       # Analysis of Experience 1 or 2
-      #=============================================================================
+      #=========================================================================
       
       if ( z == 1){
         prefixe = "Experience_1"
@@ -2179,9 +2094,9 @@ server <- function(input, output, session) {
         prefixe = "Experience_2"
       }
       
-      #=============================================================================
+      #=========================================================================
       # Get replica filename
-      #=============================================================================
+      #=========================================================================
       
       if(increment == 1){
         nom = "E1_R1.txt"
@@ -2191,9 +2106,7 @@ server <- function(input, output, session) {
         nom2 = "E2_R2.txt"
       }
       
-      
       increment = 3
-      
       
       nom = sapply(strsplit(basename(nom),"\\."), 
                    function(x) paste(x[1:(length(x)-1)], collapse=".")) 
@@ -2203,9 +2116,9 @@ server <- function(input, output, session) {
       RT = read.table(paste(prefixe,"/File_software/",nom,"_average.txt",sep=""), 
                       header = T)
       
-      #=============================================================================
+      #=========================================================================
       # SMOOTH
-      #=============================================================================
+      #=========================================================================
       
       if (e1 == TRUE){
         # Sort by chromosome then by
@@ -2289,15 +2202,15 @@ server <- function(input, output, session) {
           LSc1 = LSc[which(LSc$V6==1), ]
           LSc2 = LSc[which(LSc$V6==2), ]
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Write Smooth data
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           filename = paste(prefixe,"/Chromosomes/Loess_",chr,".txt",sep="")
           write.table(LSc, filename, row.names=F,quote=F, sep="\t") 
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Plot preparation
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           size = dim(RTc)[2]+1
           
           RTc[RTc$mLymphR1 < 0,size] =  "gray87" #  "green"
@@ -2314,9 +2227,10 @@ server <- function(input, output, session) {
           
           names(LSc2)[3:5] = c("x300smo_mLymphR1", "x300smo_mLymphR2",
                                "x300smo_mLymphAve")
-          #-------------------------------------------------------------------------
+          
+          #---------------------------------------------------------------------
           # Smooth graphical output
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           
           if(sortie_image == "Yes"){  
             filename = paste(prefixe,"/Smooth/Smooth_",chr,"_",num,".pdf",sep="")
@@ -2349,9 +2263,9 @@ server <- function(input, output, session) {
           }
         } 
         
-        #---------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         # Write all Smooth data
-        #---------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         x = as.data.frame(AllLoess)
         names(x)[3:5] = c("x300smo_mLymphR1", "x300smo_mLymphR2",
                           "x300smo_mLymphAve")
@@ -2362,9 +2276,9 @@ server <- function(input, output, session) {
         cor(x[,c(3:5)])
       }
       
-      #=============================================================================
+      #=========================================================================
       # TTR 
-      #=============================================================================
+      #=========================================================================
       
       if (e4 == TRUE){
         Sauvegarde_RT = RT
@@ -2457,9 +2371,9 @@ server <- function(input, output, session) {
             } 
           }
           
-          #=========================================================================
+          #=====================================================================
           # CTR 
-          #=========================================================================
+          #=====================================================================
           
           if (e2 == TRUE && is.null(RTbAll) == F){
             print("In seg")
@@ -2484,9 +2398,9 @@ server <- function(input, output, session) {
             colnames(Seg.mLymph) = c("loc.start","seg.mean","loc.end","seg.mean")
             Seg.mLymph = as.data.frame(Seg.mLymph)
             
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             # CTR - Graphical outputs
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             
             aff = which(RTbAll[,dim(RTbAll)[2]] == 1)
             col_dif = rep("firebrick3", length(PxAll[-aff]))
@@ -2514,9 +2428,10 @@ server <- function(input, output, session) {
             
           } 
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # TTR - Graphical outputs
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
+          
           if (e4 == TRUE && is.null(RTbAll) == F){ 
             
             aff = which(RTbAll[,dim(RTbAll)[2]] == 1)
@@ -2551,9 +2466,9 @@ server <- function(input, output, session) {
             
           } 
           
-          #=========================================================================
+          #=====================================================================
           # TTR and CTR combinaison 
-          #=========================================================================
+          #=====================================================================
           
           if (e3 == TRUE && is.null(RTbAll) == F){
             if(sortie_image == "Yes"){
@@ -2588,9 +2503,9 @@ server <- function(input, output, session) {
           }
           
           if (e2 == TRUE){
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             # Write segmentation informations
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             
             chrom = Seg.mLymph
             filename=paste(prefixe,"/Segmentation/Segmentation_repartition_",
@@ -2600,9 +2515,9 @@ server <- function(input, output, session) {
             filename = paste(prefixe,"/Chromosomes/Segmentation_",chr,".txt",sep="")
             write.table (Seg.mLymph, filename , quote=F, row.names=F, sep="\t")
             
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             # Graphical output of segmentation
-            #-----------------------------------------------------------------------
+            #-------------------------------------------------------------------
             
             Lymph =  Seg.mLymph
             Lymph$size = Lymph$loc.end - Lymph$loc.start 
@@ -2619,14 +2534,14 @@ server <- function(input, output, session) {
             }
           }
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Write position of TTR and CTR
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           
           if (is.null(RTbAll) == F){
-            #.......................................................................
+            #...................................................................
             # TTR
-            #.......................................................................
+            #...................................................................
             
             filename = paste(prefixe,"/Chromosomes/TTR_",chr,".bed.bed",sep="")
             
@@ -2651,9 +2566,9 @@ server <- function(input, output, session) {
             write.table (cbind(RTbAll$POSITION[aff],PxAll[aff], vectnumTTR), 
                          filename , quote=F, row.names=F,col.names = F, sep="\t")
             
-            #.......................................................................
+            #...................................................................
             # CTR or Not TTR
-            #.......................................................................
+            #...................................................................
             
             filename = paste(prefixe,"/Chromosomes/NTTR_",chr,".bed",sep="")
             write.table (cbind(RTbAll$POSITION[-aff],PxAll[-aff]), filename , 
@@ -2669,13 +2584,13 @@ server <- function(input, output, session) {
             }
           }
           
-          #=========================================================================
+          #=====================================================================
           # START-R viewer
-          #=========================================================================
+          #=====================================================================
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Read Data
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           All_data = read.table(paste(prefixe,"/Chromosomes/", chr,".txt", 
                                       sep = ""), header = T)
           Loess_data = read.table(paste(prefixe,"/Chromosomes/Loess_", chr,".txt", 
@@ -2729,7 +2644,7 @@ server <- function(input, output, session) {
           Loessp2 = c( Loess_data3$POSITION, "NaN",  Loess_data4$POSITION)
           
           
-          # Général
+          # General
           varg = " var trace1 = {
           x:["
           vary  = 
@@ -2742,7 +2657,7 @@ server <- function(input, output, session) {
           opacity : 0.2,
           name : 'Data'
         };"
-      
+          
           # Loess
           var1 = " var trace2 = {
           x:["
@@ -2755,7 +2670,7 @@ server <- function(input, output, session) {
           },
           name : 'Loess'
       };"
-      
+          
           # CRT late 
           var2 = " var trace3 = {
           x:["
@@ -2767,7 +2682,7 @@ server <- function(input, output, session) {
           },
           name : 'CTR : Late'
   };"
-      
+          
           # CRT early 
           var3 = " var trace4 = {
           x:["
@@ -2817,8 +2732,8 @@ server <- function(input, output, session) {
                          yaxis: {
                          title: 'Intensity'}
 };", sep = "")
-      
-          # Général
+          
+          # General
           filename = paste(prefixe,"/Viewer/",chr,".js",sep="")
           write( varg, filename)
           write.table( t(All_data$POSITION), filename, append = T, sep = ",", col.names = F, row.names = F)
@@ -2888,12 +2803,13 @@ server <- function(input, output, session) {
           
           sink()
           
-}  
-    }
+        }  
+      }
       
-      ###################################
-      # Zone d'écriture globale
-      ###################################
+      ##########################################################################
+      # Global writing field
+      ##########################################################################
+      
       tab_coord_TTR = as.data.frame(tab_coord_TTR)
       filename = paste(prefixe,"/TTR/TTR_position_",num,".bed",sep="")
       write.table(tab_coord_TTR,filename, row.names=F, quote=F,col.names = F, sep="\t")
@@ -2907,15 +2823,13 @@ server <- function(input, output, session) {
       filename = paste(prefixe,"/Segmentation/",nom,"_resume_segmentation.txt",sep="")
       write.table(sum, file = filename, quote=F, row.names=T, sep="\t")
       
-      
-      
       moyenne = cbind(RT$mLymphAve, moyenne)
       
-          } 
+    } 
     
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     # Differential analysis
-    #///////////////////////////////////////////////////////////////////////////////
+    #///////////////////////////////////////////////////////////////////////////
     
     
     if (e5 == TRUE){
@@ -2934,9 +2848,9 @@ server <- function(input, output, session) {
         top = 0
         flag = 0
         etat = 0
-        #===========================================================================
+        #=======================================================================
         # Read data 
-        #===========================================================================
+        #=======================================================================
         
         All_data1 = read.table(paste("Experience_1/Chromosomes/", chr,".txt",
                                      sep = ""), header = T)
@@ -2963,14 +2877,14 @@ server <- function(input, output, session) {
         RTb = as.data.frame(RTb)
         colnames(RTb)  = c("CHR","POSITION", "E1", "E2")
         
-        #===========================================================================
+        #=======================================================================
         # Segment method
-        #===========================================================================
+        #=======================================================================
         
         if(type_dif == "Segment method"){
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Common TTR
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           newTTR1 = NULL
           for (i in 1:TTR1[dim(TTR1)[1],3]){
             inter = TTR1[which(TTR1[,3]==i),]
@@ -3074,9 +2988,9 @@ server <- function(input, output, session) {
           ecart = abs(ans$seg.mean - ans$i.seg.mean)
           ecart2 = ans$i.seg.mean -ans$seg.mean
           
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           # Sample
-          #-------------------------------------------------------------------------
+          #---------------------------------------------------------------------
           pos_ecart = NULL
           N = 10000
           
@@ -3144,9 +3058,9 @@ server <- function(input, output, session) {
           delayed[,1] = as.numeric(as.character(delayed[,1]))
           delayed[,2] = as.numeric(as.character(delayed[,2]))
           
-          #===========================================================================
+          #=====================================================================
           # Mean method
-          #=========================================================================== 
+          #===================================================================== 
           
         }else if (type_dif == "Mean method"){
           taille_fenetre = pv2
@@ -3212,7 +3126,7 @@ server <- function(input, output, session) {
           
           pos_sample = sample(2: (nrow(All_data1)-1), 1000)
           
-          # Calcul de la taille moyenne entre 2 positions
+          # Calculation of the average size between 2 positions
           M_sample = NULL
           for(comp_sample in pos_sample){
             M_sample = c(M_sample, mean(c((All_data1$POSITION[comp_sample]- All_data1$POSITION[(comp_sample-1)]),(All_data1$POSITION[(comp_sample+1)] - All_data1$POSITION[(comp_sample)]))))
@@ -3345,28 +3259,25 @@ server <- function(input, output, session) {
               debut2[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
             }
           } 
-          ############################################################################################
-          ############################################################################################
-          # ICI modification pour la localisation des différences dans la mean
-          # Voir uniquement pour la Mouse car l'Human c'est bon
-          ############################################################################################
-          ############################################################################################
-          
           
           if(!is.null(debut1)){
             if (organisme == "Human"){
-              advanced = cbind(debut1 + Loess_data1$POSITION[1],fin1+ Loess_data1$POSITION[1] )
+              advanced = cbind(debut1 + Loess_data1$POSITION[1],fin1 + Loess_data1$POSITION[1] )
+              # advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
             } else if (organisme == "Mouse"){
-              advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ) 
-              #advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
+              advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
+              # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ) 
+              # advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
             }
           }
           if(!is.null(debut2)){
             if (organisme == "Human"){
-              delayed= cbind(debut2 + Loess_data1$POSITION[1], fin2+ Loess_data1$POSITION[1])
+              delayed= cbind(debut2 + Loess_data1$POSITION[1] , fin2+ Loess_data1$POSITION[1])
+              # delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
             } else if (organisme == "Mouse"){
-              delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
-              #delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
+              delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+              # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
+              # delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
             }
           }
           
@@ -3387,9 +3298,9 @@ server <- function(input, output, session) {
         Loess2m = c( Loess_data2_1$RTlc.fitted, NA,  Loess_data2_2$RTlc.fitted)
         Loess2p = c( Loess_data2_1$POSITION, NA,  Loess_data2_2$POSITION)
         
-        #===========================================================================
+        #=======================================================================
         # Euclidean method
-        #===========================================================================
+        #=======================================================================
         
         if (type_dif == "Euclidean method"){
           px <- (Loess_data1$RTlc.fitted - Loess_data2$RTlc.fitted)**2
@@ -3402,7 +3313,7 @@ server <- function(input, output, session) {
           par(mar = c(5, 4, 4, 0) + 0.1)
           px <- (Loess_data1$RTlc.fitted - Loess_data2$RTlc.fitted)**2
           plot(px~Loess_data1$POSITION, col = color, pch = 20, axes = F, ylim= c(0,1),
-               ylab = "Difference au carré", xlab = "Position en pb (chromosome 1)")
+               ylab = "Difference squared", xlab = "Position in pb")
           axis(1)
           axis(2, c(seq(0,1.75,0.25)))
           abline(h= min(b$out), col = 'red', lwd = 2, lty = 2)
@@ -3431,7 +3342,7 @@ server <- function(input, output, session) {
             
           }
           
-          ### Nouvelle recherche
+          ### New search
           sous = diff(dif)
           difference = NULL
           start = dif[1]
@@ -3443,7 +3354,7 @@ server <- function(input, output, session) {
             }
             
             if(sous[boucle] != 1){
-              if( compteur == 1 ){ # changer en fonction de la taille
+              if( compteur == 1 ){ # change in function of size
                 start = dif[boucle]
               } else{
                 end = dif[boucle]
@@ -3506,13 +3417,11 @@ server <- function(input, output, session) {
         }
         
         
-        
-        
-        #########################################
+        ########################################################################
         # Plotly
-        #########################################
+        ########################################################################
         
-        # Général
+        # General
         varg1 = " var trace1 = {
         x:["
         vary  = 
@@ -3525,7 +3434,7 @@ server <- function(input, output, session) {
         opacity : 0.2,
         name : 'Exp 1'
       };"
-    
+        
         varg2 = " var trace2 = {
         x:["
         
@@ -3537,7 +3446,7 @@ server <- function(input, output, session) {
         opacity : 0.2,
         name : 'Exp 2'
     };"
-    
+        
         
         # Loess
         var1 = " var trace3 = {
@@ -3551,7 +3460,7 @@ server <- function(input, output, session) {
         },
         name : 'Smooth Exp 1'
         };"
-    
+        
         var2 = " var trace4 = {
         x:["
         
@@ -3563,7 +3472,7 @@ server <- function(input, output, session) {
         },
         name : 'Smooth Exp 2'
         };"
-    
+        
         # seg advanced
         var3 = " var trace5 = {
         x:["
@@ -3601,8 +3510,8 @@ server <- function(input, output, session) {
                        yaxis: {
                        title: 'Intensity'}
   };", sep = "")
-    
-        # Général1
+        
+        # General
         filename = paste("Differential/Viewer/",chr,".js",sep="")
         write(varg1, filename)
         write.table( t(All_data1$POSITION), filename, append = T, sep = ",", col.names = F, row.names = F)
@@ -3610,7 +3519,7 @@ server <- function(input, output, session) {
         write.table( t(All_data1$mLymphAve), filename, append = T, sep = ",", col.names = F, row.names = F)
         write( vargo1, filename, append = T)
         
-        # Général2
+        # General2
         write( varg2, filename, append = T)
         write.table( t(All_data2$POSITION), filename, append = T, sep = ",", col.names = F, row.names = F)
         write( vary, filename, append = T)
@@ -3717,9 +3626,10 @@ server <- function(input, output, session) {
         ALL_dif = rbind(ALL_dif, delayed)
         
         
-        #########################################
+        ########################################################################
         # A- Percent changes analysis
-        #########################################
+        ########################################################################
+        
         max = max(as.numeric(as.character(RTb$POSITION)))
         dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),  
                 as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
@@ -3728,7 +3638,7 @@ server <- function(input, output, session) {
         sum_tot = sum_tot + sum 
         pourcentage = sum*100/max
         tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
-        }
+      }
       
       filename = paste("Differential/Differential_position_",num,".txt",sep="")
       write.table( ALL_dif,filename, row.names=F, quote=F, sep="\t")
@@ -3742,7 +3652,7 @@ server <- function(input, output, session) {
       filename = paste("Differential/Differential_percentage_",num,".txt",sep="")
       write.table(tab_pourcentage,filename, row.names=F, quote=F, sep="\t")
       
-      }
+    }
     
     setwd("../..")
     
@@ -3757,7 +3667,7 @@ server <- function(input, output, session) {
     showElement(id = "End")
   })
   
-
+  
   
   output$beginTime <- renderText({
     begin = Sys.time()
@@ -3774,11 +3684,6 @@ server <- function(input, output, session) {
           secondes, 'secs' )
   })
   
-  
-
-  
 }
-
-
 
 shinyApp(ui, server)
