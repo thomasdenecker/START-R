@@ -18,6 +18,8 @@ library("shinyjs")
 
 ui <- shinyUI(fluidPage(shinyjs::useShinyjs(),
   HTML('<link rel="stylesheet" type="text/css" href="style.css" />'),
+  tags$head(tags$title("START-R viewer")),
+  tags$head(tags$link(href = "PCNA.ico", rel ="shortcut icon")),
   img(src = "logo_Viewer.svg", class = "logo"),
 
   #/////////////////////////////////////////////////////////////////////////////
@@ -40,7 +42,9 @@ ui <- shinyUI(fluidPage(shinyjs::useShinyjs(),
         column(6,
                textOutput("organism"),
                textOutput("chrom"),
-               textOutput("Mdif")
+               textOutput("Mdif"),
+               textOutput("nbAdv"),
+               textOutput('nbDel')
         ),
         column(6,
                textOutput("SM"),
@@ -192,6 +196,22 @@ server <- shinyServer(function(input, output, session) {
     paste("Method differential :", rv$infos[1,4])
   })
 
+  output$nbDel <- renderText({
+    if(!is.null(rv$de)){
+      paste("# of delayed :", nrow(rv$de))
+    } else {
+      "# of delayed : 0"
+    }
+  })
+  
+  output$nbAdv <- renderText({
+    if(!is.null(rv$ad)){
+      paste("# of advanced :", nrow(rv$de))
+    } else {
+      "# of advanced : 0"
+    }
+  })
+  
   output$organism <- renderText({
     paste("Organism :", rv$infos[1,5])
   })
@@ -424,16 +444,19 @@ server <- shinyServer(function(input, output, session) {
                   line = list(color = rv$c6, width = 3), name ="Segmentation",
                   opacity = 1) %>%
         layout(title = paste('Timing replication study for',rv$chromosome),
-               yaxis = list(title = 'Position (pb)' ),
-               xaxis = list(title = 'Intensity' , range = c(rv$min, rv$max)))
+               yaxis = list(title = 'Intensity' ),
+               xaxis = list(title = 'Position (pb)' , range = c(rv$min, rv$max)))
 
     } else if(length(rv$exp1[,"Position"]) != 0 && rv$plotdif == TRUE){
-      plot_ly(x = rv$exp1[,"Position"],
+      g <- plot_ly(x = rv$exp1[,"Position"],
               y = rv$exp1[,"Intensity"],
               name = 'Exp 1', type = 'scatter', mode = 'markers',
               symbols = 'x',
               color = I(rv$c1),
-              opacity = 0.2) %>%
+              opacity = 0.2) %>% 
+        layout(title = paste('Differential study for',rv$chromosome),
+                       yaxis = list(title = 'Intensity' ),
+                       xaxis = list(title = 'Position (pb)' , range = c(rv$min, rv$max))) %>%
         add_markers(x = rv$exp2[,"Position"],
                     y = rv$exp2[,"Intensity"],
                     marker = list(color = rv$c2 ), name ="Exp 2", opacity = 0.2) %>%
@@ -442,16 +465,21 @@ server <- shinyServer(function(input, output, session) {
                   line = list(color = rv$c3, width = 2), name ="Smooth Exp 1", opacity = 1) %>%
         add_lines(x = rv$Sexp2[,"Position"],
                   y = rv$Sexp2[,"Intensity"],
-                  line = list(color = rv$c4, width = 2), name ="Smooth Exp 2", opacity = 1) %>%
-        add_lines(x = rv$ad[,"Position"],
-                  y = rv$ad[,"Intensity"],
-                  line = list(color = rv$c5, width = 5), name ="Advanced", opacity = 1) %>%
-        add_lines(x = rv$de[,"Position"],
-                  y = rv$de[,"Intensity"],
-                  line = list(color = rv$c6, width = 5), name ="Delayed", opacity = 1) %>%
-        layout(title = paste('Differential study for',rv$chromosome),
-               yaxis = list(title = 'Position (pb)' ),
-               xaxis = list(title = 'Intensity' , range = c(rv$min, rv$max)))
+                  line = list(color = rv$c4, width = 2), name ="Smooth Exp 2", opacity = 1)
+      
+      if(!is.null(rv$ad) && nrow(rv$ad) != 0){
+        g <- add_lines(g, x = rv$ad[,"Position"],
+                    y = rv$ad[,"Intensity"],
+                    line = list(color = rv$c5, width = 5), name ="Advanced", opacity = 1)
+      }
+      
+      if(!is.null(rv$de) && nrow(rv$de) != 0){
+        g <- add_lines(g, x = rv$de[,"Position"],
+                    y = rv$de[,"Intensity"],
+                    line = list(color = rv$c6, width = 5), name ="Delayed", opacity = 1)
+      }
+      
+      g
 
     }else {
       return()
