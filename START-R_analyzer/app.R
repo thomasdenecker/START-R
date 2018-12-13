@@ -34,7 +34,7 @@ colnames(plot_test) = c("R","G")
 options(shiny.maxRequestSize = 1000*1024^2)
 
 ui <- tagList( useShinyjs(),
-               tags$head(tags$title("START-R")),
+               tags$head(tags$title("START-R analyzer")),
                tags$head(tags$link(href = "PCNA.ico", rel ="shortcut icon")),
                
                HTML('<link rel="stylesheet" type="text/css" href="style.css" />'),
