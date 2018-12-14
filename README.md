@@ -61,16 +61,16 @@ Check "Always Open With" and after clicking OK you should be able to execute you
 **In command line**
 ```
 cd PATH/TO/START-R/folder
-./INSTALLATION_LINUX.sh
+sudo ./INSTALLATION_LINUX.sh
 ```
 Once the installation is complete, use this command to launch START-R analyzer:
 ```
-./START-R_analyzer.sh
+sudo ./START-R_analyzer.sh
 ```
 
 and this command to launch START-R viewer
 ```
-./START-R_viewer.sh
+sudo ./START-R_viewer.sh
 ```
 
 ### START-R application utilisation
@@ -103,9 +103,15 @@ docker run -ti --rm -p 3839:3838 -v YOUR_APPLICATION_PATH:/srv/shiny-server  tde
 
 **Warning**: nothing is saved in this session (package installation, ...)
 
+### Remove folder (Only for linux user) 
+
+To delete an analysis folder, you must use the following command :
+```
+sudo rm -rf dirName
+```
+
 ## Citation
 If you use START-R project, please cite our paper :
-
 
 
 ## Contributing
