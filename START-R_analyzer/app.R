@@ -566,10 +566,11 @@ ui <- tagList( useShinyjs(),
                                                    numericInput("num_Over", label = NA, value = 30,
                                                                 min = 5, max = 500),
                                                    
-                                                   tags$b("New parameter :", id = "NP1"),
-                                                   p("Explication of New parameter",  id = "NP2"),
+                                                   tags$b("Empirical threshold :", id = "NP1"),
+                                                   p("",  id = "NP2"),
                                                    numericInput("num_NP", label = NA, value = 0.45,
-                                                                min = 0, max = 1)
+                                                                min = 0, max = 1),
+                                                   checkboxInput("ET_CB", label = "Automatic", value = TRUE)
                                                    
                                             )
                                    ),
@@ -1243,6 +1244,7 @@ server <- function(input, output, session) {
       
       showElement(id = "NP1")
       showElement(id = "NP2")
+      showElement(id = "ET_CB")
       showElement(id = "num_NP")
       
     }else if(input$select_method_differential == "Mean method"){
@@ -1262,6 +1264,7 @@ server <- function(input, output, session) {
       
       hideElement(id = "NP1")
       hideElement(id = "NP2")
+      hideElement(id = "ET_CB")
       hideElement(id = "num_NP")
       
     }else if (input$select_method_differential == "Segment method"){
@@ -1281,9 +1284,20 @@ server <- function(input, output, session) {
       
       hideElement(id = "NP1")
       hideElement(id = "NP2")
+      hideElement(id = "ET_CB")
       hideElement(id = "num_NP")
     }
   })
+  
+  observeEvent(input$ET_CB,
+               {
+                 if (input$ET_CB){
+                   shinyjs::disable("num_NP")
+                 } else {
+                   shinyjs::enable("num_NP")
+                 }
+               })
+  
   
   #-----------------------------------------------------------------------------
   # Description - Differential - adjusted pval
@@ -1492,7 +1506,7 @@ server <- function(input, output, session) {
   })
   
   output$Out_differential_NP <- renderText({ 
-    paste("New parameter:", input$num_NP)
+    paste("Empirical threshold:", input$num_NP)
   })
   
   output$Out_outputs_file <- renderText({ 
@@ -1630,6 +1644,7 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("File 2 : ",nomtotal[2]))
     codebook = rbind(codebook, c("File 3 : ",nomtotal[3]))
     codebook = rbind(codebook, c("File 4 : ",nomtotal[4]))
+    codebook = rbind(codebook, c("Organism : ",organisme))
     codebook = rbind(codebook, c("Sortie image : ",sortie_image))
     codebook = rbind(codebook, c("Bed : ",bed))
     codebook = rbind(codebook, c("Intra array : ",nor1))
@@ -1655,8 +1670,7 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
     codebook = rbind(codebook, c("Overlap : ",pv4))
     codebook = rbind(codebook, c("Difference type : ",type_dif))
-    codebook = rbind(codebook, c("Threshold differnce (euclydienne): ",type_dif))
-    codebook = rbind(codebook, c("Organism : ",organisme))
+    
     
     #///////////////////////////////////////////////////////////////////////////
     # Creation of analysis folder
@@ -1682,12 +1696,7 @@ server <- function(input, output, session) {
     
     # Create folder
     dir.create(date)
-    #directionf = paste(directory,"/",date, sep = "")
     directionf = date
-    
-    # Writing the codebook in the folder
-    write.table(codebook, paste0(directionf,"/codebook.txt"), quote = F, 
-                col.names = F, row.names = F) 
     
     setwd(directionf)
     
@@ -3321,7 +3330,14 @@ server <- function(input, output, session) {
           par(mar = c(5, 0, 4, 2) + 0.1)
           boxplot(px, axes = F, col = "blue", outcol = "red", pch = 20,ylim= c(0,1))
           b = boxplot(px, plot = F)
-          dif = c(which( px <= b$stats[1,1]), which(px >= seuil) ) #b$stats[5,1]
+          
+          if (input$ET_CB){ # if automatic is true 
+            seuil = b$stats[5,1]
+          } else {
+            seuil = input$num_NP
+          }
+          
+          dif = c(which( px <= b$stats[1,1]), which(px >= seuil)) #b$stats[5,1]
           dif = sort(dif)
           
           sous = diff(dif)
@@ -3652,10 +3668,22 @@ server <- function(input, output, session) {
       filename = paste("Differential/Differential_percentage_",num,".txt",sep="")
       write.table(tab_pourcentage,filename, row.names=F, quote=F, sep="\t")
       
+    }    
+    
+    if(input$select_method_differential == "Euclidean method"){
+      codebook = rbind(codebook, c("Threshold difference (euclydienne): ",type_dif))
+      if(input$ET_CB){
+        codebook = rbind(codebook, c("Emperical threshold (euclydienne): ",paste(seuil,"(automatique)")))
+      } else {
+        codebook = rbind(codebook, c("Emperical threshold (euclydienne): ",paste(seuil,"(non automatique)")))
+      }
     }
     
-    setwd("../..")
+    # Writing the codebook in the folder
+    write.table(codebook, "codebook.txt", quote = F, 
+                col.names = F, row.names = F) 
     
+    setwd("../..")
     
     # After
     hideElement(id = "H1_processing")
@@ -3666,8 +3694,6 @@ server <- function(input, output, session) {
     showElement(id = "img_end")
     showElement(id = "End")
   })
-  
-  
   
   output$beginTime <- renderText({
     begin = Sys.time()
