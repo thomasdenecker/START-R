@@ -1,140 +1,155 @@
 <!DOCTYPE html>
 <html>
+
 <head>
 	<title>START-R</title>
 
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/css/bootstrap.min.css" integrity="sha384-PsH8R72JQ3SOdhVi3uxftmaW6Vc51MKb0q5P2rRUpPvrszuE4W1povHYgTpBfshb" crossorigin="anonymous">
 
-  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
-  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js" integrity="sha384-vFJXuSJphROIrBnz7yo7oB41mKfc8JzQZiCq4NCceLEaO4IHwicKwpJf9c9IpFgh" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js" integrity="sha384-alpBpkh1PFOepccYVYDB4do5UnbKysX5WZXm3XxPqe5iKTfUKjNkCk9SaVuEZflJ" crossorigin="anonymous"></script>
 
 
-  <link href="style.css" rel="stylesheet">
-  <link href="./Images/icon.ico" rel="shortcut icon" >
+	<link href="style.css" rel="stylesheet">
+	<link href="./Images/icon.ico" rel="shortcut icon">
 
 </head>
+
 <body>
-<!-- ========================================================================
+	<!-- ========================================================================
 	NAVBAR
 ========================================================================= -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="./index.html">
-      <img src="./Images/Logo_START_R.svg" class="d-inline-block align-top logo" alt="">
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light P100px">
+		<a class="navbar-brand" href="./index.html">
+	<img src="./Images/Logo_START_R.svg" class="d-inline-block align-top logo" alt="">
+</a>
+		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	<span class="navbar-toggler-icon"></span>
+</button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="./index.html">Home <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            The project
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="./bio_context.html">Biological context</a>
-            <a class="dropdown-item" href="./start_r.html">START-R</a>
+		<div class="collapse navbar-collapse" id="navbarSupportedContent">
+			<ul class="navbar-nav mr-auto">
+				<li class="nav-item active">
+					<a class="nav-link" href="./index.html">Home <span class="sr-only">(current)</span></a>
+				</li>
+
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				Context
+			</a>
+					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+						<a class="dropdown-item" href="./bio_context.html">Biological</a>
+						<a class="dropdown-item" href="./tech_context.html">Technical</a>
+					</div>
+				</li>
+
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+				START-R
+			</a>
+					<div class="dropdown-menu" aria-labelledby="navbarDropdown">
+						<a class="dropdown-item" href="./brief.html">In brief</a>
+						<a class="dropdown-item" href="./start_r.html">START-R protocol</a>
 						<a class="dropdown-item" href="./start_r_viewer.html">START-R viewer</a>
-          </div>
-        </li>
+					</div>
+				</li>
 
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Tools
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Installation</a>
-            <a class="dropdown-item" href="#">Documentations</a>
-          </div>
-        </li>
+				<li class="nav-item">
+					<a class="nav-link" href="https://github.com/thomasdenecker/START-R/blob/master/README.md">Installation</a>
+				</li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="./team.html">Our team</a>
-        </li>
+				<li class="nav-item">
+					<a class="nav-link" href="./team.html">Our team</a>
+				</li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="./contact.html">Contact</a>
-        </li>
+				<li class="nav-item">
+					<a class="nav-link" href="./contact.html">Contact</a>
+				</li>
 
-      </ul>
+			</ul>
+			<style media="screen">
+				.right_dec {
+					margin-right: 90px
+				}
+			</style>
 
-			<form class="form-inline">
-				<a href="https://github.com/thomasdenecker/START-R" class="btn btn-primary btn_git" role="button" aria-disabled="true">Github</a>
-				<a href="https://github.com/thomasdenecker/START-R/archive/master.zip" class="btn btn-primary btn_DL" role="button" aria-disabled="true">.zip</a>
-				<a href="https://github.com/thomasdenecker/START-R/archive/master.tar.gz" class="btn btn-primary btn_DL" role="button" aria-disabled="true">.tar.gz</a>
-    	</form>
-    </div>
-  </nav>
+			<ul class="navbar-nav navbar-right">
+				<li class="nav-item dropdown">
+					<a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+			 <img src="./Images/socials/Github-color.svg" alt="Github" class="git_head">
+		 </a>
+					<div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+						<a class="dropdown-item" href="https://github.com/thomasdenecker/START-R">Visit us on Github</a>
+						<a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.zip">Download zip   <img src="./Images/download.svg" alt="DL" class="DL"></a>
+						<a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.tar.gz">Download tar.gz  <img src="./Images/download.svg" alt="DL" class="DL"></a>
+					</div>
+				</li>
+			</ul>
+		</div>
+	</nav>
 
 	<!-- ========================================================================
 		CONTAIN
 	========================================================================= -->
 
 	<div class="container contain">
-	  <div class="mt-3">
-	    <h1 class="center">Make replication timing accessible</h1>
-	  </div>
+		<div class="mt-3">
+			<h1 class="center">Make replication timing accessible</h1>
+		</div>
 
 		<br>
-	  <p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-	    Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque
-	    lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit.
-	    Nam vitae leo orci. Quisque facilisis non elit vel blandit. Proin lobortis
-	    justo nec suscipit consequat. Nunc non scelerisque tellus, et dapibus eros.
-	    Nullam a gravida justo. Vestibulum vel massa faucibus nibh lobortis ornare
-	    eget ac augue. Vestibulum a sem mollis, convallis diam dapibus, posuere sem.
-	  </p>
-</div>
+		<p class="lead">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec finibus sed dolor eu porta. Mauris id risus in magna scelerisque lacinia. Nam velit sem, porttitor sed suscipit non, aliquet non velit. Nam vitae leo orci. Quisque facilisis non elit vel
+			blandit. Proin lobortis justo nec suscipit consequat. Nunc non scelerisque tellus, et dapibus eros. Nullam a gravida justo. Vestibulum vel massa faucibus nibh lobortis ornare eget ac augue. Vestibulum a sem mollis, convallis diam dapibus, posuere sem.
+		</p>
+	</div>
 
-<!-- ========================================================================
+	<!-- ========================================================================
 	FOOTER
 ========================================================================= -->
 
-<footer class="footer">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-4">
-          <div class="row height50 vertical-align">
+	<footer class="footer">
+		<div class="container">
+			<div class="row">
+				<div class="col-lg-4">
+					<div class="row height50 vertical-align">
 						<div class="col-md-12">
 							<nav class="footer ">
 								<ul>
-								  <li><a href="./index.html">Home</a></li>
-								  <li><a href="#">About</a></li>
-								  <li><a href="#">Team</a></li>
-								  <li><a href="#">Contact</a></li>
+									<li><a href="./index.html">Home</a></li>
+									<li><a href="#">About</a></li>
+									<li><a href="#">Team</a></li>
+									<li><a href="#">Contact</a></li>
 								</ul>
 							</nav>
 						</div>
-          </div>
-          <div class="row height50 vertical-align">
-            <div class="col-md-12">
-              <a href="https://github.com/thomasdenecker/START-R" target="_blank"><img src="./Images/socials/Github-color.svg" alt="Github" class="socials"></a>
-              <img src="./Images/socials/Slack-color.svg" alt="Slack" class="socials">
-              <a href="https://twitter.com/DNA_RepPath_lab?lang=fr" target="_blank"><img src="./Images/socials/Twitter-color.svg" alt="Twitter" class="socials"></a>
-            </div>
-          </div>
-      </div>
+					</div>
+					<div class="row height50 vertical-align">
+						<div class="col-md-12">
+							<a href="https://github.com/thomasdenecker/START-R" target="_blank"><img src="./Images/socials/Github-color.svg" alt="Github" class="socials"></a>
+							<img src="./Images/socials/Slack-color.svg" alt="Slack" class="socials">
+							<a href="https://twitter.com/DNA_RepPath_lab?lang=fr" target="_blank"><img src="./Images/socials/Twitter-color.svg" alt="Twitter" class="socials"></a>
+						</div>
+					</div>
+				</div>
 
-      <div class="col-lg-8 vertical_content">
-          <a href="http://www.ijm.fr/en/home-page/" target="_blank"><img src="./Images/Partenaires/IJM.jpeg" height="80px" alt="" class="partenaire"></a>
+				<div class="col-lg-8 vertical_content">
+					<a href="http://www.ijm.fr/en/home-page/" target="_blank"><img src="./Images/Partenaires/IJM.jpeg" height="80px" alt="" class="partenaire"></a>
 					<a href="http://www.i2bc.paris-saclay.fr/?lang=en" target="_blank"><img src="./Images/Partenaires/i2bc.png" height="80px" alt="I2BC" class="partenaire"></a>
 					<a href="http://www.cnrs.fr/index.php" target="_blank"><img src="./Images/Partenaires/CNRS.png" height="80px" alt="CNRS" class="partenaire"></a>
-          <a href="https://www.univ-paris-diderot.fr/" target="_blank"><img src="./Images/Partenaires/P7.png" height="80px" alt="P7" class="partenaire"></a>
-          <a href="http://www.u-psud.fr/fr/index.html" target="_blank"><img src="./Images/Partenaires/P11.jpg" height="80px" alt="P11" class="partenaire"></a>
-      </div>
-    </div>
+					<a href="https://www.univ-paris-diderot.fr/" target="_blank"><img src="./Images/Partenaires/P7.png" height="80px" alt="P7" class="partenaire"></a>
+					<a href="http://www.u-psud.fr/fr/index.html" target="_blank"><img src="./Images/Partenaires/P11.jpg" height="80px" alt="P11" class="partenaire"></a>
+				</div>
+			</div>
 
-  </div>
-</footer>
+		</div>
+	</footer>
 
-<script type="text/javascript">
-  $('.carousel').carousel({
-    interval: 4000
-  })
-</script>
+	<script type="text/javascript">
+		$('.carousel').carousel({
+			interval: 4000
+		})
+	</script>
 </body>
+
 </html>

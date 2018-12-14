@@ -33,6 +33,10 @@ p.justify{
 }
 
 img.method{
+    height: 100%;
+}
+
+img.methodSTART-R{
   width: 100%;
 }
 
