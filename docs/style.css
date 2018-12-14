@@ -33,7 +33,11 @@ p.justify{
 }
 
 img.method{
-  height: 100%;
+    height: 100%;
+}
+
+img.methodSTART-R{
+  width: 100%;
 }
 
 iframe.map{
