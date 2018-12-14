@@ -2,7 +2,7 @@
 
 docker pull tdenecker/start-r
 
-BASEDIR=$(dirname "$0")
+BASEDIR=$(pwd)
 echo "$BASEDIR"
 
 echo '#!/bin/bash' > $BASEDIR/START-R_analyzer.sh
