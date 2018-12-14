@@ -206,7 +206,7 @@ server <- shinyServer(function(input, output, session) {
   
   output$nbAdv <- renderText({
     if(!is.null(rv$ad)){
-      paste("# of advanced :", nrow(rv$de))
+      paste("# of advanced :", nrow(rv$ad))
     } else {
       "# of advanced : 0"
     }
