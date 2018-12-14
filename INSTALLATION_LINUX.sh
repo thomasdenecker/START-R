@@ -13,3 +13,4 @@ echo 'docker run --rm -p 3839:3838 -v' $BASEDIR'/START-R_viewer:/srv/shiny-serve
 
 chmod +x $BASEDIR/START-R_analyzer.sh
 chmod +x $BASEDIR/START-R_viewer.sh
+chmod 777 $BASEDIR/START-R_analyzer/Outputs
