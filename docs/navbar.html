@@ -1,53 +1,77 @@
 <!-- ========================================================================
 	NAVBAR
 ========================================================================= -->
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="./index.html">
-      <img src="./Images/Logo_START_R.svg" class="d-inline-block align-top logo" alt="">
-    </a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
+<nav class="navbar navbar-expand-lg navbar-light bg-light P100px">
+  <a class="navbar-brand" href="./index.html">
+    <img src="./Images/Logo_START_R.svg" class="d-inline-block align-top logo" alt="">
+  </a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
 
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-      <ul class="navbar-nav mr-auto">
-        <li class="nav-item active">
-          <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a>
-        </li>
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            The project
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Biological context</a>
-            <a class="dropdown-item" href="#">START-R</a>
-          </div>
-        </li>
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="./index.html">Home <span class="sr-only">(current)</span></a>
+      </li>
 
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            Tools
-          </a>
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="#">Installation</a>
-            <a class="dropdown-item" href="#">Documentations</a>
-          </div>
-        </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Context
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="./bio_context.html">Biological</a>
+          <a class="dropdown-item" href="./tech_context.html">Technical</a>
+        </div>
+      </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="#">The team</a>
-        </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          START-R
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="./brief.html">In brief</a>
+          <a class="dropdown-item" href="./start_r.html">START-R protocol</a>
+          <a class="dropdown-item" href="./start_r_viewer.html">START-R viewer</a>
+        </div>
+      </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="#">Contact</a>
-        </li>
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+          Tools
+        </a>
+        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="#">Installation</a>
+          <a class="dropdown-item" href="#">Documentations</a>
+        </div>
+      </li>
 
-      </ul>
+      <li class="nav-item">
+        <a class="nav-link" href="./team.html">Our team</a>
+      </li>
 
-			<form class="form-inline">
-				<a href="https://github.com/thomasdenecker/START-R" class="btn btn-primary btn_git" role="button" aria-disabled="true">Github</a>
-				<a href="https://github.com/thomasdenecker/START-R/archive/master.zip" class="btn btn-primary btn_DL" role="button" aria-disabled="true">.zip</a>
-				<a href="https://github.com/thomasdenecker/START-R/archive/master.tar.gz" class="btn btn-primary btn_DL" role="button" aria-disabled="true">.tar.gz</a>
-    	</form>
-    </div>
-  </nav>
+      <li class="nav-item">
+        <a class="nav-link" href="./contact.html">Contact</a>
+      </li>
+
+    </ul>
+    <style media="screen">
+      .right_dec {
+        margin-right: 90px
+      }
+    </style>
+
+    <ul class="navbar-nav navbar-right">
+      <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+         <img src="./Images/socials/Github-color.svg" alt="Github" class="git_head">
+       </a>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="navbarDropdown">
+          <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R">Visit us on Github</a>
+          <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.zip">Download zip   <img src="./Images/download.svg" alt="DL" class="DL"></a>
+          <a class="dropdown-item" href="https://github.com/thomasdenecker/START-R/archive/master.tar.gz">Download tar.gz  <img src="./Images/download.svg" alt="DL" class="DL"></a>
+        </div>
+      </li>
+    </ul>
+  </div>
+</nav>
