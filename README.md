@@ -75,7 +75,7 @@ sudo ./START-R_viewer.sh
 
 ### START-R application utilisation
 
-Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ fro START-viewer and it should work™. Default user is admin with password : admin. We recommend you to change this password the first time you use it.
+Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ for START-R viewer and it should work™. Default user is admin with password : admin. We recommend you to change this password the first time you use it.
 
 **NOTE** (MAC users) : You may need to repeat the same manipulation as for the installation file (only once).
 
