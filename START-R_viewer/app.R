@@ -445,7 +445,7 @@ server <- shinyServer(function(input, output, session) {
                   opacity = 1) %>%
         layout(title = paste('Timing replication study for',rv$chromosome),
                yaxis = list(title = 'Intensity' ),
-               xaxis = list(title = 'Position (pb)' , range = c(rv$min, rv$max)))
+               xaxis = list(title = 'Position (bp)' , range = c(rv$min, rv$max)))
 
     } else if(length(rv$exp1[,"Position"]) != 0 && rv$plotdif == TRUE){
       g <- plot_ly(x = rv$exp1[,"Position"],
