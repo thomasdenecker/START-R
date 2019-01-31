@@ -3271,8 +3271,8 @@ server <- function(input, output, session) {
           
           if(!is.null(debut1)){
             if (organisme == "Human"){
-              advanced = cbind(debut1 + Loess_data1$POSITION[1],fin1 + Loess_data1$POSITION[1] )
-              # advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
+              # advanced = cbind(debut1, fin1)
+              advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
             } else if (organisme == "Mouse"){
               advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos )) 
               # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ) 
@@ -3281,8 +3281,8 @@ server <- function(input, output, session) {
           }
           if(!is.null(debut2)){
             if (organisme == "Human"){
-              delayed= cbind(debut2 + Loess_data1$POSITION[1] , fin2+ Loess_data1$POSITION[1])
-              # delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+              # delayed= cbind(debut2, fin2)
+              delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
             } else if (organisme == "Mouse"){
               delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
               # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
