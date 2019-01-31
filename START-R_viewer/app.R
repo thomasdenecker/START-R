@@ -456,7 +456,7 @@ server <- shinyServer(function(input, output, session) {
               opacity = 0.2) %>% 
         layout(title = paste('Differential study for',rv$chromosome),
                        yaxis = list(title = 'Intensity' ),
-                       xaxis = list(title = 'Position (pb)' , range = c(rv$min, rv$max))) %>%
+                       xaxis = list(title = 'Position (bp)' , range = c(rv$min, rv$max))) %>%
         add_markers(x = rv$exp2[,"Position"],
                     y = rv$exp2[,"Intensity"],
                     marker = list(color = rv$c2 ), name ="Exp 2", opacity = 0.2) %>%
