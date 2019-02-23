@@ -2851,9 +2851,9 @@ server <- function(input, output, session) {
       sum_tot = 0
       
       tab_coord_dif = NULL
-      
+        
       for (chr in chrs2){
-        cat(paste("dif :", chr))
+        cat(paste("dif :", chr), file = stderr())
         top = 0
         flag = 0
         etat = 0
@@ -2925,25 +2925,30 @@ server <- function(input, output, session) {
           pascommunTTR2 = newTTR2[-ans$num,]
           pascommunTTR1 = newTTR1[-ans$i.num,]
           
-          etude = rep("ADVANCED", dim(pascommunTTR2)[1])
-          for (i in 1:dim(pascommunTTR2)[1]) {
-            mo = mean(All_data1[which(All_data1$POSITION == pascommunTTR2[i,1]),5],
-                      All_data1[which(All_data1$POSITION == pascommunTTR2[i,2]),5])
-            if((pascommunTTR2[i,4]- mo) < 0 ){
-              etude[i] = "DELAYED"
+          if(!is.null(pascommunTTR2) && !is.na(pascommunTTR2) && length(as.numeric(dim(pascommunTTR2))) != 0){
+            etude = rep("ADVANCED", dim(pascommunTTR2)[1])
+            for (i in 1:dim(pascommunTTR2)[1]) {
+              mo = mean(All_data1[which(All_data1$POSITION == pascommunTTR2[i,1]),5],
+                        All_data1[which(All_data1$POSITION == pascommunTTR2[i,2]),5])
+              if((pascommunTTR2[i,4]- mo) < 0 ){
+                etude[i] = "DELAYED"
+              }
             }
+            pascommunTTR2[,3] = etude
           }
-          pascommunTTR2[,3] = etude
           
-          etude = rep("ADVANCED", dim(pascommunTTR1)[1])
-          for (i in 1:dim(pascommunTTR1)[1]) {
-            mo = mean(All_data2[which(All_data2$POSITION == pascommunTTR1[i,1]),5],
-                      All_data2[which(All_data2$POSITION == pascommunTTR1[i,2]),5])
-            if((pascommunTTR1[i,4]- mo) > 0){
-              etude[i] = "DELAYED"
+          
+          if(!is.null(pascommunTTR1) && !is.na(pascommunTTR1) && length(as.numeric(dim(pascommunTTR1))) != 0 ){
+            etude = rep("ADVANCED", dim(pascommunTTR1)[1])
+            for (i in 1:dim(pascommunTTR1)[1]) {
+              mo = mean(All_data2[which(All_data2$POSITION == pascommunTTR1[i,1]),5],
+                        All_data2[which(All_data2$POSITION == pascommunTTR1[i,2]),5])
+              if((pascommunTTR1[i,4]- mo) > 0){
+                etude[i] = "DELAYED"
+              }
             }
+            pascommunTTR1[,3] = etude
           }
-          pascommunTTR1[,3] = etude
           
           pentedif = NULL
           for(i in 1:dim(ans)[1]){
@@ -3042,8 +3047,8 @@ server <- function(input, output, session) {
           
           if( dim(pentedif2)[1] == 0) pentedif2 = matrix(NA,1,4)
           if( dim(newseg)[1] == 0) newseg = matrix(NA,1,4)
-          if( dim(pascommunTTR1)[1] == 0) pascommunTTR1 = matrix(NA,1,4)
-          if( dim(pascommunTTR2)[1] == 0) pascommunTTR2 = matrix(NA,1,4)
+          if( is.null(pascommunTTR1) || is.na(pascommunTTR1) || length(as.numeric(dim(pascommunTTR1))) == 0 || dim(pascommunTTR1)[1] == 0) pascommunTTR1 = matrix(NA,1,4)
+          if( is.null(pascommunTTR2) || is.na(pascommunTTR2) || length(as.numeric(dim(pascommunTTR2))) == 0 || dim(pascommunTTR2)[1] == 0) pascommunTTR2 = matrix(NA,1,4)
           
           advanced = rbind(cbind(newseg[which(newseg[,3] == "ADVANCED"),1], newseg[which(newseg[,3] == "ADVANCED"),2]),
                            cbind(pascommunTTR1[which(pascommunTTR1[,3] == "ADVANCED"),1],pascommunTTR1[which(pascommunTTR1[,3] == "ADVANCED"),2]),
