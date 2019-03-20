@@ -21,7 +21,7 @@ operating system are available [here](https://www.bretfisher.com/installdocker/)
 
 Note that the size of the RAM that should be allocated to the Docker depends on
 the size of the studied organism genome. START-R can work with data from several
-organims. For the Human, we strongly recommend an increase in allocated memory for Docker.
+organims. For the human genome, we strongly recommend an increase in allocated memory for Docker.
 Otherwise, the risk is an early termination of the analysis that will be incomplete.
 
 A workstation or a laboratory server with 16GB of RAM is therefore well dimensioned.
@@ -42,17 +42,17 @@ Download the zip file ([here](https://github.com/thomasdenecker/START-R/archive/
 
 #### Windows installation
 
-In this folder, you will find a file named INSTALLATION_WINDOWS.bat. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation will be completed, a new file will appear. They allow to launch the bPeaks application.
+In this folder, you will find a file named INSTALLATION_WINDOWS.bat. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the bPeaks application.
 
 #### Mac OsX installation
-In this folder, you will find a file named INSTALLATION_MAC.sh. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation will be completed, a new file will appear. They allow to launch the bPeaks application.
+In this folder, you will find a file named INSTALLATION_MAC.sh. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the bPeaks application.
 
 **NOTE**
 
-You can also doucle click the file INSTALLATION_MAC_LINUX.sh. In this situation a small manipulation is required (1 time only).
-In your Finder, right-click the file INSTALLATION_MAC_LINUX.sh and select "Open with" and then "Other...".
+You can also double click the file INSTALLATION_MAC_LINUX.sh. In this situation a small manipulation is required (only once).
+In the Finder, right-click the file INSTALLATION_MAC_LINUX.sh and select "Open with" and then "Other...".
 
-Here you can select the application you want the file to be execute with. In this case it should be the Terminal. To be able to select the Terminal, you have to switch from "Recommended Applications" to "All Applications"  (the Terminal.app application can be found in the Utilities folder).
+You can select the application you want the file to be execute with. In this case it should be the Terminal. To be able to select the Terminal, you have to switch from "Recommended Applications" to "All Applications"  (the Terminal.app application can be found in the Utilities folder).
 
 Check "Always Open With" and after clicking OK you should be able to execute you SHELL script by simply double-clicking it.
 
@@ -75,7 +75,7 @@ sudo ./START-R_viewer.sh
 
 ### START-R application utilisation
 
-Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ for START-R viewer and it should work™. Default user is admin with password : admin. We recommend you to change this password the first time you use it.
+Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ for START-R viewer and it should work. Admin is the default user with password : admin. We recommend you to change this password the first time you use it.
 
 **NOTE** (MAC users) : You may need to repeat the same manipulation as for the installation file (only once).
 
@@ -83,7 +83,7 @@ Double click on START-R file (Windows / MacOS X) or launch the command line (Lin
 
 ### Launch in debug mode
 
-During development, you will probably need to have the R outputs in the terminal. Passing through a docker, to have these outputs, you have to access the log file. The following command launches the application and has a log file that will be in the application folder. To help you in the choice of path of the application, you can look in the launch of the application.
+During development, you will probably need to get all messages (errors, warnings and notifications) in the R terminal. The following command launches the application and generates a log file in the application folder. To find the path to the application, you can look in the launch file.
 
 START-R analyzer
 ```
