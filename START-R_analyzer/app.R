@@ -557,12 +557,12 @@ ui <- tagList( useShinyjs(),
                                                    p(textOutput("ad_PV_description"), id = "APV3"),
                                                    
                                                    tags$b("Windows size :", id = "WS1"),
-                                                   p("Sliding window length", id = "WS2"),
+                                                   p("Sliding window length (bp)", id = "WS2"),
                                                    numericInput("num_WS", label = NA, value = 60,
                                                                 min = 10, max = 1000),
                                                    
                                                    tags$b("Overlap :", id = "Over1"),
-                                                   p("Size of the overlap of the sliding window", id = "Over2"),
+                                                   p("Size of the overlap of the sliding window (bp)", id = "Over2"),
                                                    numericInput("num_Over", label = NA, value = 30,
                                                                 min = 5, max = 500),
                                                    
@@ -1228,19 +1228,21 @@ server <- function(input, output, session) {
   
   observeEvent(input$select_method_differential, {
     if(input$select_method_differential == "Euclidean method"){
-      showElement(id = "PVT1")
-      showElement(id = "num_PVT")
+      hideElement(id = "PVT1")
+      hideElement(id = "num_PVT")
       
-      showElement(id = "APV1")
-      showElement(id = "APV3")
+      hideElement(id = "APV1")
+      hideElement(id = "APV3")
+      hideElement(id = "select_method_ad_PV")
+      hideElement(id = "ad_PV_description")
       
-      showElement(id = "WS1")
-      showElement(id = "WS2")
-      showElement(id = "num_WS")
+      hideElement(id = "WS1")
+      hideElement(id = "WS2")
+      hideElement(id = "num_WS")
       
-      showElement(id = "Over1")
-      showElement(id = "Over2")
-      showElement(id = "num_Over")
+      hideElement(id = "Over1")
+      hideElement(id = "Over2")
+      hideElement(id = "num_Over")
       
       showElement(id = "NP1")
       showElement(id = "NP2")
@@ -1253,6 +1255,8 @@ server <- function(input, output, session) {
       
       showElement(id = "APV1")
       showElement(id = "APV3")
+      showElement(id = "select_method_ad_PV")
+      showElement(id = "ad_PV_description")
       
       showElement(id = "WS1")
       showElement(id = "WS2")
@@ -1273,6 +1277,8 @@ server <- function(input, output, session) {
       
       hideElement(id = "APV1")
       hideElement(id = "APV3")
+      hideElement(id = "select_method_ad_PV")
+      hideElement(id = "ad_PV_description")
       
       hideElement(id = "WS1")
       hideElement(id = "WS2")
@@ -1490,23 +1496,33 @@ server <- function(input, output, session) {
   })
   
   output$Out_differential_PVT <- renderText({ 
-    paste("PVT :", input$num_PVT)
+    if(input$select_method_differential == "Mean method"){
+      paste("PVT :", input$num_PVT)
+    }
   })
   
   output$Out_differential_PVAD <- renderText({ 
-    paste("Method adjustment PV :", input$select_method_ad_PV)
+    if(input$select_method_differential == "Mean method"){
+      paste("Method adjustment PV :", input$select_method_ad_PV)
+    }
   })
   
   output$Out_differential_WS <- renderText({ 
-    paste("Windows size:", input$num_WS)
+    if(input$select_method_differential == "Mean method"){
+      paste("Windows size:", input$num_WS)
+    }
   })
   
   output$Out_differential_Over <- renderText({ 
-    paste("Overlap:", input$num_Over)
+    if(input$select_method_differential == "Mean method"){
+      paste("Overlap:", input$num_Over)
+    }
   })
   
   output$Out_differential_NP <- renderText({ 
-    paste("Empirical threshold:", input$num_NP)
+    if(input$select_method_differential == "Euclidean method"){
+     paste("Empirical threshold:", input$num_NP)
+    }
   })
   
   output$Out_outputs_file <- renderText({ 
@@ -1654,7 +1670,9 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("TTR : ",e2))
     codebook = rbind(codebook, c("Segmentation : ",e3))
     codebook = rbind(codebook, c("All : ",e4))
+    
     codebook = rbind(codebook, c("Differential analysis : ",e5))
+    
     codebook = rbind(codebook, c("Span : ",v1))
     codebook = rbind(codebook, c("Number of SD : ",v2))
     codebook = rbind(codebook, c("padjust : ",v3))
@@ -1665,11 +1683,16 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("Column name of red signal : ",fs3))
     codebook = rbind(codebook, c("Early fraction : ",fs4))
     codebook = rbind(codebook, c("Late fraction : ",fs5))
-    codebook = rbind(codebook, c("P-value threshold : ",pv1))
-    codebook = rbind(codebook, c("Window size : ",pv2))
-    codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
-    codebook = rbind(codebook, c("Overlap : ",pv4))
-    codebook = rbind(codebook, c("Difference type : ",type_dif))
+    
+    if(e5){
+      codebook = rbind(codebook, c("Difference type : ",type_dif))
+      if(input$select_method_differential == "Mean method"){
+        codebook = rbind(codebook, c("P-value threshold : ",pv1))
+        codebook = rbind(codebook, c("Window size : ",pv2))
+        codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
+        codebook = rbind(codebook, c("Overlap : ",pv4))
+      } 
+    }
     
     
     #///////////////////////////////////////////////////////////////////////////
