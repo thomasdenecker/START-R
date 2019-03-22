@@ -3699,11 +3699,11 @@ server <- function(input, output, session) {
     }    
     
     if(input$select_method_differential == "Euclidean method"){
-      codebook = rbind(codebook, c("Threshold difference (euclydienne): ",type_dif))
+      codebook = rbind(codebook, c("Threshold difference (euclidienne): ",type_dif))
       if(input$ET_CB){
-        codebook = rbind(codebook, c("Emperical threshold (euclydienne): ",paste(seuil,"(automatique)")))
+        codebook = rbind(codebook, c("Empirical threshold (euclidienne): ",paste(seuil,"(automatic)")))
       } else {
-        codebook = rbind(codebook, c("Emperical threshold (euclydienne): ",paste(seuil,"(non automatique)")))
+        codebook = rbind(codebook, c("Empirical threshold (euclidienne): ",paste(seuil,"(non-automatic)")))
       }
     }
     
