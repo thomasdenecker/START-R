@@ -557,12 +557,12 @@ ui <- tagList( useShinyjs(),
                                                    p(textOutput("ad_PV_description"), id = "APV3"),
                                                    
                                                    tags$b("Windows size :", id = "WS1"),
-                                                   p("Sliding window length (bp)", id = "WS2"),
+                                                   p("Sliding window length (probes)", id = "WS2"),
                                                    numericInput("num_WS", label = NA, value = 60,
                                                                 min = 10, max = 1000),
                                                    
                                                    tags$b("Overlap :", id = "Over1"),
-                                                   p("Size of the overlap of the sliding window (bp)", id = "Over2"),
+                                                   p("Size of the overlap of the sliding window (probes)", id = "Over2"),
                                                    numericInput("num_Over", label = NA, value = 30,
                                                                 min = 5, max = 500),
                                                    
