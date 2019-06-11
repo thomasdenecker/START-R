@@ -80,9 +80,13 @@ sudo ./START-R_viewer.sh
 
 ### START-R application utilisation
 
-Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ for START-R viewer and it should work. Admin is the default user with password : admin. We recommend you to change this password the first time you use it.
+Double click on START-R file (Windows / MacOS X) or launch the command line (Linux) and open your internet browser, typing the following url: http://localhost:3838/ for START-R analyzer and http://localhost:3839/ for START-R viewer and it should work.
 
 **NOTE** (MAC users) : You may need to repeat the same manipulation as for the installation file (only once).
+
+### START-R analyzer results
+
+When an analysis is done with START-R analyzer, all results for this analysis are available in the folder START-R_analyzer/Outputs. The folder name begins with the date of analysis and successive numbers (for example, the first analysis will be named 20190611_1, the second analysis 20190611_2 ...)
 
 ## Development
 
