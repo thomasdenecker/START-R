@@ -2,6 +2,8 @@
 
 ------
 
+[![DOI](https://zenodo.org/badge/127922557.svg)](https://zenodo.org/badge/latestdoi/127922557)
+
 ## Requirements
 
 
