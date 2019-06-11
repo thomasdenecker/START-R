@@ -84,6 +84,8 @@ Double click on START-R file (Windows / MacOS X) or launch the command line (Lin
 
 **NOTE** (MAC users) : You may need to repeat the same manipulation as for the installation file (only once).
 
+If you want to test the START-R suite on specific datasets for a differential analysis, please use the GEO datasets [GSM2111308](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM2111308) for U2OS cells and [GSM2111313](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSM2111313) for K562 cells.
+
 ### START-R analyzer results
 
 When an analysis is done with START-R analyzer, all results for this analysis are available in the folder START-R_analyzer/Outputs. The folder name begins with the date of analysis and successive numbers (for example, the first analysis will be named 20190611_1, the second analysis 20190611_2 ...)
