@@ -64,7 +64,8 @@ Check "Always Open With" and after clicking OK you should be able to execute you
 
 **In command line**
 ```
-cd PATH/TO/START-R/folder
+git clone https://github.com/thomasdenecker/START-R.git
+cd START-R
 sudo ./INSTALLATION_LINUX.sh
 ```
 Once the installation is complete, use this command to launch START-R analyzer:
