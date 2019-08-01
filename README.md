@@ -30,9 +30,9 @@ Otherwise, the risk is an early termination of the analysis that will be incompl
 
 A workstation or a laboratory server with 16GB of RAM is therefore well dimensioned.
 To increase the allocated memory, go here for
-- [mac](https://docs.docker.com/docker-for-mac/#memory)
-- [windows](https://docs.docker.com/docker-for-windows/#advanced)
-- [linux](https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory)
+- [Mac OS X](https://docs.docker.com/docker-for-mac/#memory)
+- [Windows 10](https://docs.docker.com/docker-for-windows/#advanced)
+- [Linux](https://docs.docker.com/config/containers/resource_constraints/#limit-a-containers-access-to-memory)
 
 ## Quick start
 
@@ -44,7 +44,9 @@ Download the zip file ([here](https://github.com/thomasdenecker/START-R/archive/
 
 **Reminder** : Docker must always be switched on for any installation and use of START-R !
 
-#### Windows installation
+#### Windows installation 
+
+**IMPORTANT** : START-R needs Docker. It will only be possible to install on **Windows 10**.
 
 In this folder, you will find a file named INSTALLATION_WINDOWS.bat. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the START-R applications.
 
