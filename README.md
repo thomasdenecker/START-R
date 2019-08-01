@@ -46,15 +46,33 @@ Download the zip file ([here](https://github.com/thomasdenecker/START-R/archive/
 
 #### Windows installation
 
-In this folder, you will find a file named INSTALLATION_WINDOWS.bat. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the bPeaks application.
+In this folder, you will find a file named INSTALLATION_WINDOWS.bat. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the START-R applications.
 
 #### Mac OsX installation
-In this folder, you will find a file named INSTALLATION_MAC.sh. By double clicking on it, the installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the bPeaks application.
+
+**In command line**
+
+[Open a terminal](https://www.youtube.com/watch?v=QROX039ckO8) and run these commands:
+
+```
+git clone https://github.com/thomasdenecker/START-R.git
+cd START-R
+sudo ./INSTALLATION_MAC.sh
+```
+
+The installation will begin. This may take a little time depending on the quality of your internet connection. When the installation is completed, a new file will appear. They allow to launch the START-R applications. Once the installation is complete, use this command to launch START-R analyzer:
+```
+./START-R_analyzer.sh
+```
+
+and this command to launch START-R viewer
+```
+./START-R_viewer.sh
+```
 
 **NOTE**
 
-You can also double click the file INSTALLATION_MAC_LINUX.sh. In this situation a small manipulation is required (only once).
-In the Finder, right-click the file INSTALLATION_MAC_LINUX.sh and select "Open with" and then "Other...".
+You can also double click the file START-R_analyzer.sh and START-R_viewer.sh. In this situation a small manipulation is required (only once). In the Finder, right-click the file START-R_analyzer.sh (idem for START-R_viewer.sh) and select "Open with" and then "Other...".
 
 You can select the application you want the file to be execute with. In this case it should be the Terminal. To be able to select the Terminal, you have to switch from "Recommended Applications" to "All Applications"  (the Terminal.app application can be found in the Utilities folder).
 
@@ -63,6 +81,9 @@ Check "Always Open With" and after clicking OK you should be able to execute you
 #### Linux installation
 
 **In command line**
+
+[Open a terminal](https://linuxconfig.org/how-to-open-a-terminal-on-ubuntu-bionic-beaver-18-04-linux) and run these commands:
+
 ```
 git clone https://github.com/thomasdenecker/START-R.git
 cd START-R
@@ -103,7 +124,7 @@ docker run -ti --rm -p 3838:3838 -v YOUR_APPLICATION_PATH:/var/log/shiny-server 
 
 START-R viewer
 ```
-docker run -ti --rm -p 3838:3838 -v YOUR_APPLICATION_PATH:/var/log/shiny-server -v YOUR_APPLICATION_PATH/START-R_viewer:/srv/shiny-server tdenecker/start-r
+docker run -ti --rm -p 3839:3838 -v YOUR_APPLICATION_PATH:/var/log/shiny-server -v YOUR_APPLICATION_PATH/START-R_viewer:/srv/shiny-server tdenecker/start-r
 ```
 
 ### Connect to a R session
