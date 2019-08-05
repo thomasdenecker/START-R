@@ -73,7 +73,7 @@ ui <- tagList( useShinyjs(),
                             remain open to the scientific community so that the software can always be improved or developed.
                            ', class="intro"),
 
-                                   HTML('<a href="http://www.ijm.fr/" class ="no_style"><button type="button" class="run">Visit website !</button></a>'),
+                                   HTML('<a href="https://thomasdenecker.github.io/START-R/"  target="_blank" class ="no_style"><button type="button" class="run">Visit website !</button></a>'),
 
                                    p('This web application will allow you to enter the necessary informations for
                             the analysis to run correctly. All the steps are organized
@@ -99,13 +99,15 @@ ui <- tagList( useShinyjs(),
                                                          choices = list("Human" = "Human", "Mouse" = "Mouse", "Other" = "Other"),
                                                          selected = "Human", inline = T),
                                             
-                                            fluidRow(id="fileOtherCentro", p("You can enter your own centromere position file. It 
-                                                                             must be composed of 3 columns. The first must contain 
-                                                                             the names of the chromosomes. They must be strictly 
-                                                                             identical to those in your data files or they will be 
-                                                                             ignored (START-R will consider that there is no centromere). 
-                                                                             The second column corresponds to the beginning position of 
-                                                                             the centromere and the third column to the end position."),
+                                            div(id="fileOtherCentro", 
+                                                    p("You can enter your own centromere position file. It 
+                                                     must be composed of 3 columns. The first must contain 
+                                                     the names of the chromosomes. They must be strictly 
+                                                     identical to those in your data files or they will be 
+                                                     ignored (START-R will consider that there is no centromere). 
+                                                     The second column corresponds to the beginning position of 
+                                                     the centromere and the third column to the end position."),
+                                                      tags$br(),
                                                      fileInput("inputFileOtherCentro", label = NA)),
                                             HTML("</div>"),
                                             uiOutput("orga_img")
@@ -118,7 +120,7 @@ ui <- tagList( useShinyjs(),
                                             radioButtons("dif", label = NA,
                                                          choices = list("Yes" = "Yes", "No" = "No"),
                                                          selected = "No", inline = T),
-                                            HTML("</div>"),
+                                            
                                             img(src= "differential.png", alt = 'dif', class = "dif")
 
                                      )
@@ -2197,7 +2199,25 @@ server <- function(input, output, session) {
         # check table centromere for other
         
         if(organisme == "Other"){
-          # tableauCentro = read.csv2(,sep = "\t", row.names = 1)
+          req(input$file_E1_R1)
+          tableauCentroFile = read.csv2(input$inputFileOtherCentro$datapath,sep = "\t", row.names = 1)
+          
+          # If wrong size
+          if(ncol(tableauCentroFile) != 2) {
+            tableauCentro = matrix(0, length(chrs2), 2)
+            colnames(tableauCentro) = c("debut", "fin")
+            rownames(tableauCentro) = chrs2
+          } else {
+            tableauCentro = matrix(0, length(chrs2), 2)
+            colnames(tableauCentro) = c("debut", "fin")
+            rownames(tableauCentro) = chrs2
+            
+            for(n in rownames(tableauCentroFile)){
+              tableauCentro[n, 1] = tableauCentroFile[n, 1]
+              tableauCentro[n, 2] = tableauCentroFile[n, 2]
+            }
+            tableauCentro = data.matrix(tableauCentro)
+          }
         }
 
         for (chr in chrs2) {
@@ -2351,11 +2371,15 @@ server <- function(input, output, session) {
         chrs2 = chrs2[!chrs2 == "chrY"]
         for (chr in chrs2){
           cat("Current chromosomeTTR: ", chr,"\n")
+          
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else{
+          }else if (organisme == "Mouse" ){
             centro = centro_Mouse(chr)
+          }else {
+            centro = centro_Other(tableauCentro, chr)
           }
+          
           RTbAll = NULL
           PxAll = NULL
           RTseg = NULL
@@ -2540,7 +2564,7 @@ server <- function(input, output, session) {
                      paste("Timing Transition Region (TTR) & segmentation in ",
                            chr, sep = ""),
                    xlab="Coordinate (bp)", ylab="mLymph ave", cex = 0.5, pch = 16,
-                   col = "gray80", xlim = c(0,10000000))
+                   col = "gray80")
               points(RTbAll$POSITION[-aff],PxAll[-aff], col = col_dif, pch= 16)
               points(RTbAll$POSITION[aff],PxAll[aff], col = "gold", pch= 16)
               segments(Seg.mLymph$loc.start, Seg.mLymph$seg.mean,Seg.mLymph$loc.end,
@@ -3178,11 +3202,13 @@ server <- function(input, output, session) {
             }
 
           }
-
+          
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else{
+          }else if (organisme == "Mouse" ){
             centro = centro_Mouse(chr)
+          }else {
+            centro = centro_Other(tableauCentro, chr)
           }
 
           pos_centro = centro
@@ -3335,6 +3361,8 @@ server <- function(input, output, session) {
               advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
               # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) )
               # advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
+            } else {
+              advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
             }
           }
           if(!is.null(debut2)){
@@ -3345,6 +3373,8 @@ server <- function(input, output, session) {
               delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
               # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
               # delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
+            } else {
+              delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
             }
           }
 
@@ -3473,7 +3503,7 @@ server <- function(input, output, session) {
 
           plot(All_data1$POSITION, All_data1$mLymphAve, ylab = "Intensity", xlab="Coordinate (bp)",
                cex = 0.5, pch = 16, col = "gray80", main = paste("Differential (", chr,")"),  ylim = c(minus,maxi))
-          points(All_data2$POSITION, All_data2$mLymphAve, cex = 0.5, pch = 16, col = "gray80", xlim = c(0,10000000))
+          points(All_data2$POSITION, All_data2$mLymphAve, cex = 0.5, pch = 16, col = "gray80")
           lines(Loess1m~Loess1p, col="blue3", lwd=3)
           lines(Loess2m~Loess2p, col="red", lwd=3)
 
