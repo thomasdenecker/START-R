@@ -96,8 +96,17 @@ ui <- tagList( useShinyjs(),
                                             p("Two types of organisms can be studied in START-R", class = "center"),
                                             HTML("<div class='center'>"),
                                             radioButtons("organism", label = NA,
-                                                         choices = list("Human" = "Human", "Mouse" = "Mouse"),
+                                                         choices = list("Human" = "Human", "Mouse" = "Mouse", "Other" = "Other"),
                                                          selected = "Human", inline = T),
+                                            
+                                            fluidRow(id="fileOtherCentro", p("You can enter your own centromere position file. It 
+                                                                             must be composed of 3 columns. The first must contain 
+                                                                             the names of the chromosomes. They must be strictly 
+                                                                             identical to those in your data files or they will be 
+                                                                             ignored (START-R will consider that there is no centromere). 
+                                                                             The second column corresponds to the beginning position of 
+                                                                             the centromere and the third column to the end position."),
+                                                     fileInput("inputFileOtherCentro", label = NA)),
                                             HTML("</div>"),
                                             uiOutput("orga_img")
 
@@ -917,7 +926,16 @@ server <- function(input, output, session) {
   output$orga_img <- renderUI({
     img(src = paste0(input$organism, ".svg"), height = 100, class = "center")
   })
-
+  
+  observeEvent(input$organism, {
+    if(input$organism == "Other"){
+      showElement(id = "fileOtherCentro")
+    } else {
+      hideElement(id = "fileOtherCentro")
+    }
+  }
+  )
+  
   #=============================================================================
   # Import Data
   #=============================================================================
@@ -1625,6 +1643,10 @@ server <- function(input, output, session) {
                             "chr19", "chrX")
       return(tableau[which(rownames(tableau)== chromo),])
     }
+    
+    centro_Other = function(tableau, chromo){
+      return(tableau[which(rownames(tableau)== chromo),])
+    }
 
     ################################################################################
     # Constants
@@ -2171,13 +2193,21 @@ server <- function(input, output, session) {
         AllLoess = NULL
         RT = na.omit(RT)
         model_loess = NULL
+        
+        # check table centromere for other
+        
+        if(organisme == "Other"){
+          # tableauCentro = read.csv2(,sep = "\t", row.names = 1)
+        }
 
         for (chr in chrs2) {
           cat("Current chromosome Lissage: ", chr,"\n")
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else{
+          }else if (organisme == "Mouse" ){
             centro = centro_Mouse(chr)
+          }else {
+            centro = centro_Other(tableauCentro, chr)
           }
 
           RTbinter = subset(RT, RT$CHR == chr)
