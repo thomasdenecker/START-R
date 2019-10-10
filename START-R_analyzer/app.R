@@ -3246,7 +3246,12 @@ server <- function(input, output, session) {
           tab_centro = as.data.frame(tab_centro)
           tab_centro[,1] = as.character(tab_centro[,1])
           
-          pos_sample = sample(2: (nrow(All_data1)-1), 1000)
+          if (length(2: (nrow(All_data1)-1)) >=1000){
+            pos_sample = sample(2: (nrow(All_data1)-1), 1000)
+          } else {
+            pos_sample = sample(2: (nrow(All_data1)-1), length(2: (nrow(All_data1)-1)))
+          }
+          
           
           # Calculation of the average size between 2 positions
           M_sample = NULL
