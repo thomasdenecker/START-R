@@ -93,7 +93,6 @@ ui <- tagList( useShinyjs(),
                                    fluidRow(
                                      column(6,
                                             h3("Organism", class = "center"),
-                                            p("Two types of organisms can be studied in START-R", class = "center"),
                                             HTML("<div class='center'>"),
                                             radioButtons("organism", label = NA,
                                                          choices = list("Human (hg18)" = "Human", "No centromere" = "noCentromere", "Others (Human > hg19 or other species)" = "Other"),
