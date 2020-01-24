@@ -2661,20 +2661,23 @@ server <- function(input, output, session) {
             
             tableau_inter_TTR = cbind(RTbAll$POSITION[aff],PxAll[aff], vectnumTTR)
             Final_TTR = NULL
-            for( deroul in 1:max(unique(tableau_inter_TTR[,3]))){
-              subset_ttr = tableau_inter_TTR[tableau_inter_TTR[,3] == deroul,]
-              Final_TTR = rbind(Final_TTR, c(subset_ttr[1,1],
-                                             subset_ttr[nrow(subset_ttr),1]))
+            if(!is.null(tableau_inter_TTR) & nrow(tableau_inter_TTR) != 0){
+              for( deroul in 1:max(unique(tableau_inter_TTR[,3]))){
+                subset_ttr = tableau_inter_TTR[tableau_inter_TTR[,3] == deroul,]
+                Final_TTR = rbind(Final_TTR, c(subset_ttr[1,1],
+                                               subset_ttr[nrow(subset_ttr),1]))
+              }
             }
             
             write.table (Final_TTR, filename , quote=F, row.names=F,
                          col.names = F, sep="\t")
             filename = paste(prefixe,"/Chromosomes/TTR_all.bed",sep="")
-            
-            Final_TTR_chr = cbind(rep(chr, nrow(Final_TTR)), Final_TTR)
-            write.table (Final_TTR_chr, filename , append=TRUE,quote=F,
-                         row.names=F,col.names = F, sep="\t")
-            
+
+            if(!is.null(Final_TTR)){
+              Final_TTR_chr = cbind(rep(chr, nrow(Final_TTR)), Final_TTR)
+              write.table (Final_TTR_chr, filename , append=TRUE,quote=F,
+                           row.names=F,col.names = F, sep="\t")
+            }
             
             filename = paste(prefixe,"/Chromosomes/TTR_",chr,".bed",sep="")
             write.table (cbind(RTbAll$POSITION[aff],PxAll[aff], vectnumTTR),
@@ -2690,7 +2693,6 @@ server <- function(input, output, session) {
             filename = paste(prefixe,"/Chromosomes/Segmentation_",chr,".bed",sep="")
             write.table (Seg.mLymph, filename , quote=F, row.names=F, sep="\t")
             
-            ### modif
             if(!is.null(RTbAll$POSITION[aff])){
               tab_coord_TTR = rbind(tab_coord_TTR,RTbAll$POSITION[aff])
               tab_seg_glob = rbind(tab_seg_glob,
@@ -2711,8 +2713,14 @@ server <- function(input, output, session) {
                                         sep = ""), header = T)
           Seg_data = read.table(paste(prefixe,"/Chromosomes/Segmentation_", chr,".bed",
                                       sep = ""), header = T)
-          TTR_data = read.table(paste(prefixe,"/Chromosomes/TTR_", chr,".bed",
-                                      sep = ""), header = F)
+          if(length(readLines(paste(prefixe,"/Chromosomes/TTR_", chr,".bed",
+                                    sep = ""))) != 0){
+            TTR_data = read.table(paste(prefixe,"/Chromosomes/TTR_", chr,".bed",
+                                        sep = ""), header = F)
+          } else {
+            TTR_data = matrix(, 0,2)
+          }
+          
           NTTR_data = read.table(paste(prefixe,"/Chromosomes/NTTR_",chr,".bed",
                                        sep = ""), header = T)
           
@@ -2736,11 +2744,17 @@ server <- function(input, output, session) {
           moyen[,2] = Seg_data$seg.mean
           moyen = as.vector(t(moyen))
           
-          couleur = as.character(TTR_data$V6[!duplicated(TTR_data$V6)])
-          TTR = TTR_data[which(TTR_data$V6 == "gold"),]
+          if(nrow(TTR_data) != 0){
+            couleur = as.character(TTR_data$V6[!duplicated(TTR_data$V6)])
+            TTR = TTR_data[which(TTR_data$V6 == "gold"),]
+            names(TTR_data)= c("POSITION","mLymphAve" )
+          } else {
+            couleur = NULL
+            TTR = TTR_data
+            colnames(TTR_data)= c("POSITION","mLymphAve" )
+          }
           
           names(Loess_data)[3:5] = c("mLymphR1", "mLymphR2","mLymphAve")
-          names(TTR_data)= c("POSITION","mLymphAve" )
           names(NTTR_data) = c("POSITION","mLymphAve" )
           
           NTTR_inf = NTTR_data[which(NTTR_data$mLymphAve < 0), ]
@@ -2877,12 +2891,14 @@ server <- function(input, output, session) {
           write( var3o, filename, append = T)
           
           # TTR
-          write( var4, filename, append = T)
-          write.table( t(TTR_data$POSITION), filename, append = T, sep = ",", col.names = F, row.names = F)
-          write( vary, filename, append = T)
-          write.table( t(TTR_data$mLymphAve), filename, append = T, sep = ",", col.names = F, row.names = F)
-          write( var4o, filename, append = T)
-          
+          if(nrow(TTR_data) != 0){
+            write( var4, filename, append = T)
+            write.table( t(TTR_data$POSITION), filename, append = T, sep = ",", col.names = F, row.names = F)
+            write( vary, filename, append = T)
+            write.table( t(TTR_data$mLymphAve), filename, append = T, sep = ",", col.names = F, row.names = F)
+            write( var4o, filename, append = T)
+          }
+
           # Seg
           write( var5, filename, append = T)
           write.table( t(pos_seg), filename, append = T, sep = ",", col.names = F, row.names = F)
@@ -2902,16 +2918,44 @@ server <- function(input, output, session) {
           # norm intre, inter rep, inter exp,
           write.table(cbind(nor1,nor2,nor3,type_dif, organisme, v4, chr),
                       row.names=FALSE,col.names=FALSE,sep="\t", quote = F)
-          
+
           global_table_viewer = rbind(
-            c("Position", "Intensity", "Name"),
-            cbind(as.numeric(All_data$POSITION), as.numeric(All_data$mLymphAve), "Data"),
-            cbind(as.numeric(Loessp), as.numeric(Loessm), "Loess"),
-            cbind(as.numeric(NTTR_inf$POSITION), as.numeric(NTTR_inf$mLymphAve), "CTR : late"),
-            cbind(as.numeric(NTTR_sup$POSITION), as.numeric(NTTR_sup$mLymphAve), "CTR : early"),
-            cbind(as.numeric(TTR_data$POSITION), as.numeric(TTR_data$mLymphAve), "TTR"),
-            cbind(as.numeric(pos_seg), as.numeric(moyen), "Segmentation")
-          )
+            c("Position", "Intensity", "Name"))
+          
+          if(nrow((cbind(as.numeric(All_data$POSITION), as.numeric(All_data$mLymphAve), "Data"))) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(All_data$POSITION), as.numeric(All_data$mLymphAve), "Data"))
+          }
+          
+          if(nrow((cbind(as.numeric(Loessp), as.numeric(Loessm), "Loess"))) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(Loessp), as.numeric(Loessm), "Loess")                          
+            )
+          }
+          
+          if(nrow(NTTR_inf) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(NTTR_inf$POSITION), as.numeric(NTTR_inf$mLymphAve), "CTR : late")                         
+            )
+          }
+          
+          if(nrow(NTTR_sup) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(NTTR_sup$POSITION), as.numeric(NTTR_sup$mLymphAve), "CTR : early")                      
+            )
+          }
+          
+          if(nrow(TTR_data) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(TTR_data$POSITION), as.numeric(TTR_data$mLymphAve), "TTR")                        
+            )
+          }
+          
+          if(length(pos_seg) != 0){
+            global_table_viewer = rbind(global_table_viewer,
+                                        cbind(as.numeric(pos_seg), as.numeric(moyen), "Segmentation")                        
+            )
+          }
           
           write.table(global_table_viewer, row.names=FALSE,col.names=FALSE,sep="\t", quote = F)
           
