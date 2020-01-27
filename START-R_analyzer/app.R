@@ -24,6 +24,7 @@ library(data.table)
 library(htmltools)
 library(clusterSim)
 library(car)
+library(tools)
 
 # Plot Normalisation
 plot_test = read.table("test_data.txt", header = F, sep = "\t")
@@ -1789,21 +1790,23 @@ server <- function(input, output, session) {
       
       nom = nomtotal[increment]
       file.copy(nom, "./")
+      extension = file_ext(nom)
       if(increment == 1){
-        file.rename("0.txt", "E1_R1.txt")
+        file.rename(paste0("0.", extension), "E1_R1.txt")
         nom = "E1_R1.txt"
       } else{
-        file.rename("0.txt", "E2_R1.txt")
+        file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
       }
       
       nom2 = nomtotal[increment+1]
+      extension2 = file_ext(nom2)
       file.copy(nom2, "./")
       if(increment == 1){
-        file.rename("0.txt", "E1_R2.txt")
+        file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
       } else{
-        file.rename("0.txt", "E2_R2.txt")
+        file.rename(paste0("0.", extension2), "E2_R2.txt")
         nom2 = "E2_R2.txt"
       }
       
