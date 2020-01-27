@@ -2,7 +2,7 @@
 # START-R analyzer  : a Simple tool to analyse Replication Timing with R
 # Thomas DENECKER
 # thomas.denecker@gmail.com
-# 2018
+# 2020
 #
 # GitHub :
 # https://github.com/thomasdenecker/START-R
@@ -1806,8 +1806,6 @@ server <- function(input, output, session) {
         file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
       } else{
-        file.rename(paste0("0.", extension2), "E2_R2.txt")
-        nom2 = "E2_R2.txt"
       }
       
       increment = 3
