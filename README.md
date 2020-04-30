@@ -19,6 +19,11 @@ application:
 required docker tools (see links above).To help you, explanatory videos for each
 operating system are available [here](https://www.bretfisher.com/installdocker/)
 
+To help you with the installation, you will find below videos on youtube for each system:
+- [Mac OS X](https://www.youtube.com/watch?v=mbSsh40_8WM)
+- [Windows 10](https://www.youtube.com/watch?v=_9AWYlt86B8)
+- [Linux](https://www.youtube.com/watch?v=8Iu5uqby9PY)
+
 **Docker must be on for the duration of START-R use.**
 
 **Important**
@@ -132,7 +137,7 @@ docker run -ti --rm -p 3839:3838 -v YOUR_APPLICATION_PATH:/var/log/shiny-server 
 ### Connect to a R session
 
 ```
-docker run -ti --rm -p 3839:3838 -v YOUR_APPLICATION_PATH:/srv/shiny-server  tdenecker/start-r
+docker run -ti --rm -p 3839:3838 -v YOUR_APPLICATION_PATH:/srv/shiny-server  tdenecker/start-r R
 ```
 
 **Warning**: nothing is saved in this session (package installation, ...)
@@ -143,10 +148,77 @@ To delete an analysis folder, you must use the following command :
 ```
 sudo rm -rf dirName
 ```
+## References
+START-R use R packages. You will find below the list of packages and the installed versions in the Docker image: 
+
+- Winston Chang, Joe Cheng, JJ Allaire, Yihui Xie and Jonathan
+McPherson (2017). shiny: Web Application Framework for R. R package
+version 1.0.5. https://CRAN.R-project.org/package=shiny
+
+- Thomas Lin Pedersen (2016). shinyFiles: A Server-Side File System
+Viewer for Shiny. R package version 0.6.2.
+https://CRAN.R-project.org/package=shinyFiles
+
+- Dean Attali (2018). shinyjs: Easily Improve the User Experience of
+Your Shiny Apps in Seconds. R package version 1.0.
+https://CRAN.R-project.org/package=shinyjs
+
+- Winston Chang (2016). shinythemes: Themes for Shiny. R package
+version 1.1.1. https://CRAN.R-project.org/package=shinythemes
+
+- Carson Sievert, Chris Parmer, Toby Hocking, Scott Chamberlain,
+Karthik Ram, Marianne Corvellec and Pedro Despouy (2017). plotly:
+Create Interactive Web Graphics via 'plotly.js'. R package version
+4.7.1. https://CRAN.R-project.org/package=plotly
+
+- Dean Attali (2017). colourpicker: A Colour Picker Tool for Shiny and
+for Selecting Colours in Plots. R package version 1.0.
+https://CRAN.R-project.org/package=colourpicker
+
+- Ritchie, M.E., Phipson, B., Wu, D., Hu, Y., Law, C.W., Shi, W., and
+Smyth, G.K. (2015). limma powers differential expression analyses for
+RNA-sequencing and microarray studies. Nucleic Acids Research 43(7),
+e47.
+
+- Venkatraman E. Seshan and Adam Olshen (). DNAcopy: DNA copy number
+data analysis. R package version 1.44.0.
+
+- SNPchip: R classes and methods for SNP array data R.B. Scharpf and G.
+Parmigiani and J. Pevsner and I. Ruczinski 2007, Bioinformatics, Vol.
+23, 627-628
+
+- Hans W. Borchers (2018). pracma: Practical Numerical Math Functions.
+R package version 2.1.4. https://CRAN.R-project.org/package=pracma
+
+- Matt Dowle and Arun Srinivasan (2017). data.table: Extension of
+'data.frame'. R package version 1.10.4-3.
+https://CRAN.R-project.org/package=data.table
+
+- RStudio and Inc. (2017). htmltools: Tools for HTML. R package version
+0.3.6. https://CRAN.R-project.org/package=htmltools
+
+- Marek Walesiak and Andrzej Dudek (2017). clusterSim: Searching for
+Optimal Clustering Procedure for a Data Set. R package version
+0.47-1. https://CRAN.R-project.org/package=clusterSim
+
+- John Fox and Sanford Weisberg (2011). An {R} Companion to Applied
+Regression, Second Edition. Thousand Oaks CA: Sage. URL:
+http://socserv.socsci.mcmaster.ca/jfox/Books/Companion
+
+- R Core Team (2015). R: A language and environment for statistical
+computing. R Foundation for Statistical Computing, Vienna, Austria.
+URL https://www.R-project.org/.
+
+Note: You will find in the application help in the choice of methods based on these packages. These helps are directly extracted from the packages. 
 
 ## Citation
 If you use START-R project, please cite our paper :
 
+**New, easy, quick and efficient DNA replication timing analysis by high-throughput approaches**
+
+Djihad Hadjadj, Thomas Denecker, Eva Guérin, Su-Jung Kim, Fabien Fauchereau, Giuseppe Baldacci, Chrystelle Maric, Jean-Charles Cadoret
+
+bioRxiv 858803; doi: https://doi.org/10.1101/858803
 
 ## Contributing
 
