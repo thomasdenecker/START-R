@@ -118,6 +118,10 @@ If you want to test the START-R suite on specific datasets for a differential an
 
 When an analysis is done with START-R analyzer, all results for this analysis are available in the folder START-R_analyzer/Outputs. The folder name begins with the date of analysis and successive numbers (for example, the first analysis will be named 20190611_1, the second analysis 20190611_2 ...)
 
+## How to use 
+
+To help you in the use of START-R, we have written a [wiki](https://github.com/thomasdenecker/START-R/wiki). If you have any questions or problems, do not hesitate to post an [issue](https://github.com/thomasdenecker/START-R/issues/new/). 
+
 ## Development
 
 ### Launch in debug mode
