@@ -218,11 +218,11 @@ Note: You will find in the application help in the choice of methods based on th
 ## Citation
 If you use START-R project, please cite our paper :
 
-**New, easy, quick and efficient DNA replication timing analysis by high-throughput approaches**
+**Efficient, quick and easy-to-use DNA replication timing analysis with START-R suite**
 
 Djihad Hadjadj, Thomas Denecker, Eva Guérin, Su-Jung Kim, Fabien Fauchereau, Giuseppe Baldacci, Chrystelle Maric, Jean-Charles Cadoret
 
-bioRxiv 858803; doi: https://doi.org/10.1101/858803
+NAR Genomics and Bioinformatics, Volume 2, Issue 2, June 2020, lqaa045, https://doi.org/10.1093/nargab/lqaa045
 
 ## Contributing
 
