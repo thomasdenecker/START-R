@@ -1583,6 +1583,58 @@ server <- function(input, output, session) {
   
   click = FALSE
   observeEvent(input$Run , {
+
+    ################################################################################
+    # Functions : File Treatment
+    ################################################################################
+    
+    remove.zero <- function(file.to.treat){
+      nonzero.value.index.g <- rownames(file.to.treat[file.to.treat["gProcessedSignal"] == 0, ])
+      nonzero.value.index.r <- rownames(file.to.treat[file.to.treat["rProcessedSignal"] == 0, ])
+      #Recover all lines with 0 in " gProcessedSignal " column and / or " gProcessedSignal " column
+      union.index <- unique(sort(c(as.numeric(nonzero.value.index.g), as.numeric(nonzero.value.index.r))))
+      return(union.index)
+    }
+    
+    # Remove "chrY"
+    remove.chry <- function(file.to.treat){
+      # Positions of lines with "chrY"
+      pos.chry <- c()
+      for (i in 1:(dim(file.to.treat)[1])){
+        pos <- file.to.treat[i, "SystematicName"]
+        # Recover only chr name
+        pos.split <- strsplit(as.character(pos), ":")
+        type.chr <- unlist(pos.split)[1]
+        if (!is.na(type.chr) && type.chr == "chrY"){
+          pos.chry <- c(pos.chry, i)
+        }
+        else{
+          pos.chry <- pos.chry
+        }
+      }
+      return(pos.chry)
+    }
+    
+    # Treatment to avoid errors when methods are used in the app
+    treatment <- function(name, input.skip, index){
+      # Read input file
+      file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
+      # Remove lines with O
+      file.without.zero <- file[-index, ]
+      # Remove "chrY"
+      pos.chry <- remove.chry(file = file.without.zero)
+      if (!is.null(pos.chry)){
+        treated.file <- file.without.zero[-pos.chry,]
+        write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+      }
+      else{
+        write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+      }
+    }
+    
+    ################################################################################
+
+
     # Before
     hideElement(id = "Run")
     hideElement(id = "H1_Run")
@@ -1628,6 +1680,37 @@ server <- function(input, output, session) {
                  File3 = File3,
                  File4 = File4)
     
+
+    ################################################################################
+    # Determine the lines containing at least one zero 
+    ################################################################################
+    
+    differential.analysis = input$CH_Differential
+    union.index <- c()
+    if (differential.analysis == TRUE){
+          
+          # Read all input files
+          file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
+          file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
+          file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
+          file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
+
+          union.index1 <- remove.zero(file = file1.before.treatment)
+          union.index2 <- remove.zero(file = file2.before.treatment)
+          union.index3 <- remove.zero(file = file3.before.treatment)
+          union.index4 <- remove.zero(file = file4.before.treatment)
+          
+          union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
+          union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
+          
+          # Recover indices from all files in order to remove same lines (= same chromosome and positions)
+          union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+
+    }
+    
+    ################################################################################
+
+
     sortie_image = input$graphical_outputs
     bed = input$file_outputs
     nor1 = input$RBintra_array
@@ -1794,9 +1877,17 @@ server <- function(input, output, session) {
       if(increment == 1){
         file.rename(paste0("0.", extension), "E1_R1.txt")
         nom = "E1_R1.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && length(union.index) > 0){
+          treatment(name = nom, input.skip = input$skip_E1_R1, index = union.index) 
+        }
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && length(union.index) > 0){
+          treatment(name = nom, input.skip = input$skip_E2_R1, index = union.index)
+        }
       }
       
       nom2 = nomtotal[increment+1]
@@ -1805,7 +1896,17 @@ server <- function(input, output, session) {
       if(increment == 1){
         file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && length(union.index) > 0){
+          treatment(name = nom2, input.skip = input$skip_E1_R2, index = union.index) 
+        }
       } else{
+        file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
+        nom2 = "0.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && length(union.index) > 0){
+          treatment(name = nom2, input.skip = input$skip_E2_R2, index = union.index) 
+        }
       }
       
       increment = 3
@@ -2205,7 +2306,9 @@ server <- function(input, output, session) {
         RT = na.omit(RT)
         RTS = as.data.frame(RT)
         RTL = as.data.frame(RT$CHR)
-        chrs = levels(RTL[,1])
+        # chrs = levels(RTL[,1])
+        # Add factor to avoid empty list
+        chrs = levels(factor(RTL[,1]))
         motelim = c("chr11_gl000202_random", "chr17_gl000204_random",
                     "chr17_gl000205_random","chr19_gl000209_random",
                     "chr1_gl000192_random", "chr4_gl000193_random",
@@ -3317,6 +3420,11 @@ server <- function(input, output, session) {
           etat = 0
           compt = 0
           test = NULL
+
+          ###
+          iteration.pos0 <- 0
+          ###
+
           for (i in 2 : (dim(tab_pval)[1]-1)){
             
             if (tab_pval[i,4] != "forestgreen"){
@@ -3343,6 +3451,11 @@ server <- function(input, output, session) {
               flag = 1
               min2 = tab_pval[i,"POSITION"]
               max = tab_pval[i,"POSITION"]
+              # Recover the first value (when iteration.pos = 0)
+              if (iteration.pos0 == 0 && etat == 2 * compt){
+                pos.0 <- as.numeric(min2)
+                iteration.pos0 <- iteration.pos0 + 1
+              }
               top = top + 1
               
             }
@@ -3417,6 +3530,11 @@ server <- function(input, output, session) {
             if(debut1[1] == 0){
               debut1[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
             }
+          }
+
+          # Add the missing position if it exists (for the first value when top < 2)
+          if (!is.null(debut2) && is.na(debut2[1])){
+            debut2[1] <- pos.0
           }
           
           if (!is.null(debut2[1])){
