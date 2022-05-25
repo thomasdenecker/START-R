@@ -3454,14 +3454,14 @@ server <- function(input, output, session) {
               max = tab_pval[i,"POSITION"]
 
               # Recover the first value (when iteration.pos = 0)
-              if (iteration.pos0 == 0 && etat == 2 * compt){
+              if (iteration.pos0.delayed == 0 && etat == 2 * compt){
                 pos.0.delayed <- as.numeric(min2)
-                iteration.pos0.delayed <- iteration.pos0 + 1
+                iteration.pos0.delayed <- iteration.pos0.delayed + 1
               }
               
-              if (iteration.pos0 == 0 && etat == -1 * compt){
+              if (iteration.pos0.advanced == 0 && etat == -1 * compt){
                 pos.0.advanced <- as.numeric(min2)
-                iteration.pos0.advanced <- iteration.pos0 + 1
+                iteration.pos0.advanced <- iteration.pos0.advanced + 1
               }
 
               top = top + 1
