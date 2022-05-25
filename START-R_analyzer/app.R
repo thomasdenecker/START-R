@@ -1879,14 +1879,14 @@ server <- function(input, output, session) {
         nom = "E1_R1.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && length(union.index) > 0){
-          treatment(name = nom, input.skip = input$skip_E1_R1, index = union.index) 
+          treatment(name = nom, input.skip = fs1, index = union.index) 
         }
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && length(union.index) > 0){
-          treatment(name = nom, input.skip = input$skip_E2_R1, index = union.index)
+          treatment(name = nom, input.skip = fs1, index = union.index)
         }
       }
       
@@ -1898,14 +1898,14 @@ server <- function(input, output, session) {
         nom2 = "E1_R2.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && length(union.index) > 0){
-          treatment(name = nom2, input.skip = input$skip_E1_R2, index = union.index) 
+          treatment(name = nom2, input.skip = fs1, index = union.index) 
         }
       } else{
         file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
         nom2 = "0.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && length(union.index) > 0){
-          treatment(name = nom2, input.skip = input$skip_E2_R2, index = union.index) 
+          treatment(name = nom2, input.skip = fs1, index = union.index) 
         }
       }
       
