@@ -3422,7 +3422,8 @@ server <- function(input, output, session) {
           test = NULL
 
           ###
-          iteration.pos0 <- 0
+          iteration.pos0.delayed <- 0
+          iteration.pos0.advanced <- 0
           ###
 
           for (i in 2 : (dim(tab_pval)[1]-1)){
@@ -3451,11 +3452,18 @@ server <- function(input, output, session) {
               flag = 1
               min2 = tab_pval[i,"POSITION"]
               max = tab_pval[i,"POSITION"]
+
               # Recover the first value (when iteration.pos = 0)
               if (iteration.pos0 == 0 && etat == 2 * compt){
-                pos.0 <- as.numeric(min2)
-                iteration.pos0 <- iteration.pos0 + 1
+                pos.0.delayed <- as.numeric(min2)
+                iteration.pos0.delayed <- iteration.pos0 + 1
               }
+              
+              if (iteration.pos0 == 0 && etat == -1 * compt){
+                pos.0.advanced <- as.numeric(min2)
+                iteration.pos0.advanced <- iteration.pos0 + 1
+              }
+
               top = top + 1
               
             }
@@ -3525,6 +3533,11 @@ server <- function(input, output, session) {
             debut2 = as.numeric(as.character(inter_de[,2]))
             fin2 = as.numeric(as.character(inter_de[,3]))
           }
+
+          # Vector "debut1" : add the missing position if it exists (for the first value when top < 2)
+          if (!is.null(debut1) && is.na(debut1[1])){
+            debut1[1] <- pos.0.advanced
+          }
           
           if (!is.null(debut1[1])){
             if(debut1[1] == 0){
@@ -3532,9 +3545,9 @@ server <- function(input, output, session) {
             }
           }
 
-          # Add the missing position if it exists (for the first value when top < 2)
+          # Vector "debut2" : add the missing position if it exists (for the first value when top < 2)
           if (!is.null(debut2) && is.na(debut2[1])){
-            debut2[1] <- pos.0
+            debut2[1] <- pos.0.delayed
           }
           
           if (!is.null(debut2[1])){
