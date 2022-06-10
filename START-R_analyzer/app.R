@@ -25,6 +25,7 @@ library(htmltools)
 library(clusterSim)
 library(car)
 library(tools)
+library(stringr)
 
 # Plot Normalisation
 plot_test = read.table("test_data.txt", header = F, sep = "\t")
@@ -92,12 +93,56 @@ ui <- tagList( useShinyjs(),
                                    HTML("<div class='CG'>"),
                                    h1("Initialisation", class ="center"),
                                    fluidRow(
-                                     column(6,
+                                     #column(6,
+                                            #h3("Organism", class = "center"),
+                                            #HTML("<div class='center'>"),
+                                            #radioButtons("organism", label = NA,
+                                                         #choices = list("Human (hg18)" = "Human", "No centromere" = "noCentromere", "Others (Human > hg19 or other species)" = "Other"),
+                                                         #selected = "Human", inline = T),
+                                            #div(id="fileOtherCentro", 
+                                                #p("You can enter your own centromere position file. It
+                                                                           #must be composed of 3 columns. The first must contain
+                                                                           #the names of the chromosomes. They must be strictly
+                                                                           #identical to those in your data files or they will be
+                                                                           #ignored (START-R will consider that there is no centromere).
+                                                                           #The second column corresponds to the beginning position of
+                                                                           #the centromere and the third column to the end position."),
+                                                #tags$br(),
+                                                #fileInput("inputFileOtherCentro", label = NA)),
+                                            #HTML("</div>"),
+                                            #uiOutput("orga_img")
+                                            
+                                     #),
+                                     #column(6,
+                                            #h3("Differential", class = "center"),
+                                            #p("Detect differences between 2 experiments", class = "center"),
+                                            #HTML("<div class='center'>"),
+                                            #radioButtons("dif", label = NA,
+                                                         #choices = list("Yes" = "Yes", "No" = "No"),
+                                                         #selected = "No", inline = T),
+                                            #HTML("</div>"),
+                                            #img(src= "differential.png", alt = 'dif', class = "dif")
+                                            
+                                     #)
+                                     column(4,
+                                            h3("Analysis", class = "center"),
+                                            HTML("<div class='center'>"),
+                                            radioButtons("analysis", label = NA,
+                                                         choices = list("Microarray" = "microarray", "Repli-seq" = "repliseq"),
+                                                         selected = "microarray", inline = T),
+                                            div(id="SelectFiltering", 
+                                                p("For Repli-seq analysis, you have to provide files with raw counts. The rpkm normalization will be performed by START-R"),
+                                                radioButtons("filtering", label = NA,
+                                                             choices = list("Remove lines containing 0" = "remove0", "Add a value to each line (+ 1)" = "noise"),
+                                                             selected = "microarray", inline = T),
+                                                tags$br()),
+                                            HTML("</div>")
+                                     ),
+                                     column(4,
                                             h3("Organism", class = "center"),
                                             HTML("<div class='center'>"),
-                                            radioButtons("organism", label = NA,
-                                                         choices = list("Human (hg18)" = "Human", "No centromere" = "noCentromere", "Others (Human > hg19 or other species)" = "Other"),
-                                                         selected = "Human", inline = T),
+                                            selectInput(inputId = "organism", label = "Genomes", 
+                                                        choices = c("Human (hg18)" = "Human", "Human (hg19)" = "hg19", "Human (hg38)" = "hg38", "No centromere" = "noCentromere", "Others (own centromere position file or other species)" = "Other")),
                                             div(id="fileOtherCentro", 
                                                 p("You can enter your own centromere position file. It
                                                                            must be composed of 3 columns. The first must contain
@@ -112,7 +157,7 @@ ui <- tagList( useShinyjs(),
                                             uiOutput("orga_img")
                                             
                                      ),
-                                     column(6,
+                                     column(4,
                                             h3("Differential", class = "center"),
                                             p("Detect differences between 2 experiments", class = "center"),
                                             HTML("<div class='center'>"),
@@ -952,6 +997,14 @@ server <- function(input, output, session) {
     img(src = paste0(input$organism, ".svg"), height = 100, class = "center")
   })
   
+  observeEvent(input$analysis, {
+    if(input$analysis == "repliseq"){
+      showElement(id = "SelectFiltering")
+    } else {
+      hideElement(id = "SelectFiltering")
+    }
+  })
+
   observeEvent(input$organism, {
     if(input$organism == "Other"){
       showElement(id = "fileOtherCentro")
@@ -1595,6 +1648,16 @@ server <- function(input, output, session) {
       union.index <- unique(sort(c(as.numeric(nonzero.value.index.g), as.numeric(nonzero.value.index.r))))
       return(union.index)
     }
+
+    remove.min.two.columns <- function(file.to.treat){
+      min.gProcessedSignal <- min(file.to.treat$gProcessedSignal)
+      min.rProcessedSignal <- min(file.to.treat$rProcessedSignal)
+      min.value.index.g <- rownames(file.to.treat[file.to.treat["gProcessedSignal"] == min.gProcessedSignal, ])
+      min.value.index.r <- rownames(file.to.treat[file.to.treat["rProcessedSignal"] == min.rProcessedSignal, ])
+      # Recover all lines with min value in " gProcessedSignal " column and " gProcessedSignal " column
+      intersect.min.index <- intersect(min.value.index.g, min.value.index.r)
+      return(intersect.min.index)
+    }
     
     # Remove "chrY"
     remove.chry <- function(file.to.treat){
@@ -1619,12 +1682,30 @@ server <- function(input, output, session) {
     treatment <- function(name, input.skip, index){
       # Read input file
       file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
-      # Remove lines with O
-      file.without.zero <- file[-index, ]
+
+      # Determine bin size
+      pos.with.chr <- str_split(file[1, "SystematicName"], ":")
+      start.end <- str_split(pos.with.chr[[1]][2], "-")
+      bs <- as.numeric(start.end[[1]][2]) - as.numeric(start.end[[1]][1])
+
+      # Add noise to avoid 0 = add 1 to each value
+      if (input$filtering == "noise"){
+        file[, "gProcessedSignal"] <- file[, "gProcessedSignal"] + 1
+        file[, "rProcessedSignal"] <- file[, "rProcessedSignal"] + 1
+      }
+      # Calculate RPKM values
+      sum.S1 <- sum(file$gProcessedSignal)
+      sum.S2 <- sum(file$rProcessedSignal)
+      file$gProcessedSignal <- file$gProcessedSignal / (sum.S1 * 10**-6 * bs * 10**-3)
+      file$rProcessedSignal <- file$rProcessedSignal / (sum.S2 * 10**-6 * bs * 10**-3)
+
+      # Remove lines with min values
+      file.without.min <- file[-index, ]
+
       # Remove "chrY"
-      pos.chry <- remove.chry(file = file.without.zero)
+      pos.chry <- remove.chry(file = file.without.min)
       if (!is.null(pos.chry)){
-        treated.file <- file.without.zero[-pos.chry,]
+        treated.file <- file.without.min[-pos.chry,]
         write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
       }
       else{
@@ -1633,7 +1714,9 @@ server <- function(input, output, session) {
     }
     
     ################################################################################
-
+    
+    # Load centromere positions for hg38 genome (table extracted from "rCGH" package : data derived from the Hg38 gap UCSC table)
+    hg38 <- read.table("./Inputs/centromere_positions_hg38.txt", header = TRUE, sep = "\t")
 
     # Before
     hideElement(id = "Run")
@@ -1682,26 +1765,38 @@ server <- function(input, output, session) {
     
 
     ################################################################################
-    # Determine the lines containing at least one zero 
+    # determine the lines to be deleted according to the method to be used
     ################################################################################
     
-    differential.analysis = input$CH_Differential
+differential.analysis = input$CH_Differential
     union.index <- c()
-    if (differential.analysis == TRUE){
+    if (differential.analysis == TRUE && input$analysis == "repliseq"){
           
           # Read all input files
           file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
           file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
           file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
           file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
-
-          union.index1 <- remove.zero(file = file1.before.treatment)
-          union.index2 <- remove.zero(file = file2.before.treatment)
-          union.index3 <- remove.zero(file = file3.before.treatment)
-          union.index4 <- remove.zero(file = file4.before.treatment)
           
-          union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
-          union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
+          if (input$filtering == "remove0"){
+            union.index1 <- remove.zero(file = file1.before.treatment)
+            union.index2 <- remove.zero(file = file2.before.treatment)
+            union.index3 <- remove.zero(file = file3.before.treatment)
+            union.index4 <- remove.zero(file = file4.before.treatment)
+            
+            union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
+            union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
+          }
+
+          if (input$filtering == "noise"){
+            inter.index1 <- remove.min.two.columns(file = file1.before.treatment)
+            inter.index2 <- remove.min.two.columns(file = file2.before.treatment)
+            inter.index3 <- remove.min.two.columns(file = file3.before.treatment)
+            inter.index4 <- remove.min.two.columns(file = file4.before.treatment)
+            
+            union.index1.2 <- unique(sort(c(as.numeric(inter.index1), as.numeric(inter.index2))))
+            union.index3.4 <- unique(sort(c(as.numeric(inter.index3), as.numeric(inter.index4))))
+          }
           
           # Recover indices from all files in order to remove same lines (= same chromosome and positions)
           union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
@@ -1878,14 +1973,14 @@ server <- function(input, output, session) {
         file.rename(paste0("0.", extension), "E1_R1.txt")
         nom = "E1_R1.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE && length(union.index) > 0){
+        if (differential.analysis == TRUE  && input$analysis == "repliseq" && length(union.index) > 0){
           treatment(name = nom, input.skip = fs1, index = union.index) 
         }
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE && length(union.index) > 0){
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
           treatment(name = nom, input.skip = fs1, index = union.index)
         }
       }
@@ -1897,14 +1992,14 @@ server <- function(input, output, session) {
         file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE && length(union.index) > 0){
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
           treatment(name = nom2, input.skip = fs1, index = union.index) 
         }
       } else{
         file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
         nom2 = "0.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE && length(union.index) > 0){
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
           treatment(name = nom2, input.skip = fs1, index = union.index) 
         }
       }
@@ -2333,7 +2428,8 @@ server <- function(input, output, session) {
             tableauCentro = matrix(0, length(chrs2), 2)
             colnames(tableauCentro) = c("debut", "fin")
             rownames(tableauCentro) = chrs2
-          } else {
+          } 
+          else {
             tableauCentro = matrix(0, length(chrs2), 2)
             colnames(tableauCentro) = c("debut", "fin")
             rownames(tableauCentro) = chrs2
@@ -2350,7 +2446,15 @@ server <- function(input, output, session) {
           cat("Current chromosome Lissage: ", chr,"\n")
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
@@ -2500,7 +2604,15 @@ server <- function(input, output, session) {
           
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
@@ -3375,7 +3487,15 @@ server <- function(input, output, session) {
           
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
