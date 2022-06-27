@@ -134,7 +134,7 @@ ui <- tagList( useShinyjs(),
                                                 p("For Repli-seq analysis, you have to provide files with raw counts. The rpkm normalization will be performed by START-R"),
                                                 radioButtons("filtering", label = NA,
                                                              choices = list("Remove lines containing 0" = "remove0", "Add a value to each line (+ 1)" = "noise"),
-                                                             selected = "microarray", inline = T),
+                                                             selected = "noise", inline = T),
                                                 tags$br()),
                                             HTML("</div>")
                                      ),
@@ -1679,7 +1679,7 @@ server <- function(input, output, session) {
     }
     
     # Treatment to avoid errors when methods are used in the app
-    treatment <- function(name, input.skip, index){
+    treatment.repliseq <- function(name, input.skip, index){
       # Read input file
       file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
 
@@ -1711,6 +1711,14 @@ server <- function(input, output, session) {
       else{
         write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
       }
+    }
+
+    # Treatment to avoid a noise (log2(ratio) = 0) when microarray files are used
+    treatment.microarray <- function(name, input.skip, index){
+      # Read input file
+      file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
+      treated.file <- file[-index, ]
+      write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     }
     
     ################################################################################
@@ -1768,7 +1776,7 @@ server <- function(input, output, session) {
     # determine the lines to be deleted according to the method to be used
     ################################################################################
     
-differential.analysis = input$CH_Differential
+    differential.analysis = input$CH_Differential
     union.index <- c()
     if (differential.analysis == TRUE && input$analysis == "repliseq"){
           
@@ -1801,8 +1809,41 @@ differential.analysis = input$CH_Differential
           # Recover indices from all files in order to remove same lines (= same chromosome and positions)
           union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
 
+    } 
+    else if (input$analysis == "microarray"){
+
+      nbr.lines <- input$skip_E1_R1
+      file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = nbr.lines)
+      file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = nbr.lines)
+      
+      lines.pos <- str_split(file1.before.treatment$SystematicName, ":")
+      ind.chry <- c()
+      for (i in 1:length(lines.pos)){
+        if (lines.pos[[i]][1] == "chrY"){
+          ind.chry <- c(ind.chry, i)
+        }
+      }
+      
+      ind.logratio.cond1 <- which(file1.before.treatment$LogRatio == 0)
+      ind.logratio.cond2 <- which(file2.before.treatment$LogRatio == 0)
+      union.index1.2 <- unique(sort(c(as.numeric(ind.logratio.cond1), as.numeric(ind.logratio.cond2))))
+      
+      if (differential.analysis == TRUE){
+        file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = nbr.lines)
+        file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = nbr.lines)
+        
+        ind.logratio.cond3 <- which(file3.before.treatment$LogRatio == 0)
+        ind.logratio.cond4 <- which(file4.before.treatment$LogRatio == 0)
+        
+        union.index3.4 <- unique(sort(c(as.numeric(ind.logratio.cond3), as.numeric(ind.logratio.cond4))))
+        union.index.logratio <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+        union.index.all <- unique(sort(c(as.numeric(union.index.logratio), as.numeric(ind.chry))))
+      }
+      else{
+        union.index.all <- unique(sort(c(as.numeric(union.index1.2), as.numeric(ind.chry))))
+      }
+
     }
-    
     ################################################################################
 
 
@@ -1974,14 +2015,22 @@ differential.analysis = input$CH_Differential
         nom = "E1_R1.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE  && input$analysis == "repliseq" && length(union.index) > 0){
-          treatment(name = nom, input.skip = fs1, index = union.index) 
+          treatment.repliseq(name = nom, input.skip = fs1, index = union.index) 
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
         }
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
-          treatment(name = nom, input.skip = fs1, index = union.index)
+          treatment.repliseq(name = nom, input.skip = fs1, index = union.index)
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
         }
       }
       
@@ -1993,15 +2042,28 @@ differential.analysis = input$CH_Differential
         nom2 = "E1_R2.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
-          treatment(name = nom2, input.skip = fs1, index = union.index) 
+          treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
         }
       } else{
         file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
         nom2 = "0.txt"
         # File treatment to avoid errors during differential analysis
         if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
-          treatment(name = nom2, input.skip = fs1, index = union.index) 
+          treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
         }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
+        }
+      }
+      
+      # Change the number of lines to skip in order to read treated input files
+      if (input$analysis == "microarray" && length(union.index.all) > 0){
+        fs1 = 0
       }
       
       increment = 3
@@ -4041,10 +4103,18 @@ differential.analysis = input$CH_Differential
         if(is.null(advanced) == F){
           advanced = as.data.frame(cbind(rep(chr, dim(advanced)[1]), advanced, rep("ADVANCED", dim(advanced)[1])))
           names(advanced) = c("CHR","START", "END", "STATUS")
+          if (input$analysis == "microarray"){
+              advanced$START <- round(as.numeric(advanced$START))
+              advanced$END <- round(as.numeric(advanced$END))
+          }
         }
         if(is.null(delayed) == F){
           delayed = as.data.frame(cbind(rep(chr, dim(delayed)[1]), delayed, rep("DELAYED", dim(delayed)[1])))
           names(delayed) = c("CHR","START", "END", "STATUS")
+          if (input$analysis == "microarray"){
+            delayed$START <- round(as.numeric(delayed$START))
+            delayed$END <- round(as.numeric(delayed$END))
+          }
         }
         
         
