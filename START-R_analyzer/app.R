@@ -2535,7 +2535,8 @@ server <- function(input, output, session) {
               ligne = which(RTb$POSITION > centro[j])
             }
             RTb = RTb[ligne, ]
-            if( dim(RTb)[1] != 0){
+            # if( dim(RTb)[1] != 0){
+            if( dim(RTb)[1] > 1){
               RTl = NULL
               if (v4 != "Loess"){
                 p_mov = v5
@@ -2701,7 +2702,8 @@ server <- function(input, output, session) {
             }else{
               RTb = RTb[which(RTb$POSITION > centro[j]),]
             }
-            if( dim(RTb)[1] != 0){
+            # if( dim(RTb)[1] != 0){
+            if( dim(RTb)[1] > 1){
               lspan = v1/(max(RTb$POSITION)-min(RTb$POSITION))
               fit = loess(RTb$mLymphAve ~ RTb$POSITION, span = lspan)
               px <- predict(fit, newdata=RTb$POSITION)
