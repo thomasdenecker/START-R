@@ -1810,40 +1810,40 @@ server <- function(input, output, session) {
           union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
 
     } 
-    else if (input$analysis == "microarray"){
+    # else if (input$analysis == "microarray"){
 
-      nbr.lines <- input$skip_E1_R1
-      file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = nbr.lines)
-      file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = nbr.lines)
+     # nbr.lines <- input$skip_E1_R1
+     # file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = nbr.lines)
+     # file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = nbr.lines)
       
-      lines.pos <- str_split(file1.before.treatment$SystematicName, ":")
-      ind.chry <- c()
-      for (i in 1:length(lines.pos)){
-        if (lines.pos[[i]][1] == "chrY"){
-          ind.chry <- c(ind.chry, i)
-        }
-      }
+     # lines.pos <- str_split(file1.before.treatment$SystematicName, ":")
+     # ind.chry <- c()
+     # for (i in 1:length(lines.pos)){
+     #   if (lines.pos[[i]][1] == "chrY"){
+     #     ind.chry <- c(ind.chry, i)
+     #   }
+     # }
       
-      ind.logratio.cond1 <- which(file1.before.treatment$LogRatio == 0)
-      ind.logratio.cond2 <- which(file2.before.treatment$LogRatio == 0)
-      union.index1.2 <- unique(sort(c(as.numeric(ind.logratio.cond1), as.numeric(ind.logratio.cond2))))
+     # ind.logratio.cond1 <- which(file1.before.treatment$LogRatio == 0)
+     # ind.logratio.cond2 <- which(file2.before.treatment$LogRatio == 0)
+     # union.index1.2 <- unique(sort(c(as.numeric(ind.logratio.cond1), as.numeric(ind.logratio.cond2))))
       
-      if (differential.analysis == TRUE){
-        file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = nbr.lines)
-        file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = nbr.lines)
+     # if (differential.analysis == TRUE){
+     #   file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = nbr.lines)
+     #   file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = nbr.lines)
         
-        ind.logratio.cond3 <- which(file3.before.treatment$LogRatio == 0)
-        ind.logratio.cond4 <- which(file4.before.treatment$LogRatio == 0)
+     #   ind.logratio.cond3 <- which(file3.before.treatment$LogRatio == 0)
+     #   ind.logratio.cond4 <- which(file4.before.treatment$LogRatio == 0)
         
-        union.index3.4 <- unique(sort(c(as.numeric(ind.logratio.cond3), as.numeric(ind.logratio.cond4))))
-        union.index.logratio <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
-        union.index.all <- unique(sort(c(as.numeric(union.index.logratio), as.numeric(ind.chry))))
-      }
-      else{
-        union.index.all <- unique(sort(c(as.numeric(union.index1.2), as.numeric(ind.chry))))
-      }
+     #   union.index3.4 <- unique(sort(c(as.numeric(ind.logratio.cond3), as.numeric(ind.logratio.cond4))))
+     #   union.index.logratio <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+     #   union.index.all <- unique(sort(c(as.numeric(union.index.logratio), as.numeric(ind.chry))))
+     # }
+     # else{
+     #   union.index.all <- unique(sort(c(as.numeric(union.index1.2), as.numeric(ind.chry))))
+     # }
 
-    }
+   # }
     ################################################################################
 
 
@@ -2018,9 +2018,9 @@ server <- function(input, output, session) {
           treatment.repliseq(name = nom, input.skip = fs1, index = union.index) 
         }
         # File treatment to avoid noise (log2(ratio) = 0)
-        else if (input$analysis == "microarray" && length(union.index.all) > 0){
-          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
-        }
+        #else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          #treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
+        #}
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
@@ -2029,9 +2029,9 @@ server <- function(input, output, session) {
           treatment.repliseq(name = nom, input.skip = fs1, index = union.index)
         }
         # File treatment to avoid noise (log2(ratio) = 0)
-        else if (input$analysis == "microarray" && length(union.index.all) > 0){
-          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
-        }
+        #else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          #treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
+        #}
       }
       
       nom2 = nomtotal[increment+1]
@@ -2045,9 +2045,9 @@ server <- function(input, output, session) {
           treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
         }
         # File treatment to avoid noise (log2(ratio) = 0)
-        else if (input$analysis == "microarray" && length(union.index.all) > 0){
-          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
-        }
+        #else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          #treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
+        #}
       } else{
         file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
         nom2 = "0.txt"
@@ -2056,15 +2056,15 @@ server <- function(input, output, session) {
           treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
         }
         # File treatment to avoid noise (log2(ratio) = 0)
-        else if (input$analysis == "microarray" && length(union.index.all) > 0){
-          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
-        }
+        #else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          #treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
+        #}
       }
       
       # Change the number of lines to skip in order to read treated input files
-      if (input$analysis == "microarray" && length(union.index.all) > 0){
-        fs1 = 0
-      }
+      #if (input$analysis == "microarray" && length(union.index.all) > 0){
+       # fs1 = 0
+     # }
       
       increment = 3
       
