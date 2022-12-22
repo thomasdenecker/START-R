@@ -1761,6 +1761,34 @@ server <- function(input, output, session) {
       treated.file <- file[-index, ]
       write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
     }
+
+    # Rounding numbers using the digits behind the decimal point
+    round.number <- function(num){
+      list.num <- str_split(num, "\\.")
+      arr <- list.num[[1]][2]
+      if (as.numeric(str_split(arr, "")[[1]][1]) >= 5 && !is.na(arr)){
+        num.new <- as.numeric(list.num[[1]][1]) + 1
+      }
+      if (as.numeric(str_split(arr, "")[[1]][1]) < 5 && !is.na(arr)){
+        num.new <- as.numeric(list.num[[1]][1])
+      }
+      if (is.na(arr)){
+        num.new <- as.numeric(list.num[[1]])
+      }
+      num.new
+      return(num.new)
+    }
+    
+    # Rounding positions of dataframe columns
+    round.positions <- function(x){
+      pos.start <- x[2]
+      pos.end <- x[3]
+      new.pos.start <- round.number(pos.start)
+      new.pos.end <- round.number(pos.end)
+      x[2] <- new.pos.start
+      x[3] <- new.pos.end
+      return(x)
+    }
     
     ################################################################################
     
@@ -4620,6 +4648,10 @@ server <- function(input, output, session) {
         tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
       }
       
+      if (input$analysis == "microarray"){
+        ALL_dif <- t(apply(ALL_dif, 1, function(x) round.positions(x)))
+      }
+
       filename = paste("Differential/Differential_position_",num,".txt",sep="")
       write.table( ALL_dif,filename, row.names=F, quote=F, sep="\t")
       filename = paste("Differential/Differential_position_",num,".bed",sep="")
