@@ -1854,7 +1854,9 @@ server <- function(input, output, session) {
           file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
           file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
           file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
-          
+
+          nbr.total <- dim(file1.before.treatment)[1]
+
           if (input$filtering == "remove0"){
             union.index1 <- remove.zero(file = file1.before.treatment)
             union.index2 <- remove.zero(file = file2.before.treatment)
@@ -1897,6 +1899,10 @@ server <- function(input, output, session) {
       ind.logratio.cond2 <- which(file2.before.treatment$LogRatio == 0)
       union.index1.2 <- unique(sort(c(as.numeric(ind.logratio.cond1), as.numeric(ind.logratio.cond2))))
       
+      nbr.total <- dim(file1.before.treatment)[1]
+      nbr.remove <- length(union.index1.2)
+      percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
+
       if (differential.analysis == TRUE){
         file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = nbr.lines)
         file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = nbr.lines)
@@ -1911,6 +1917,9 @@ server <- function(input, output, session) {
       else{
         union.index.all <- unique(sort(c(as.numeric(union.index1.2), as.numeric(ind.chry))))
       }
+
+      nbr.remove <- length(union.index.all)
+      percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
 
     }
     ################################################################################
@@ -1990,44 +1999,44 @@ server <- function(input, output, session) {
     # Creating a codebook
     #///////////////////////////////////////////////////////////////////////////
     
-    codebook = NULL
-    codebook = rbind(codebook, c("File 1 : ",File1name))
-    codebook = rbind(codebook, c("File 2 : ",File2name))
-    codebook = rbind(codebook, c("File 3 : ",File3name))
-    codebook = rbind(codebook, c("File 4 : ",File4name))
-    codebook = rbind(codebook, c("Organism : ",organisme))
-    codebook = rbind(codebook, c("Sortie image : ",sortie_image))
-    codebook = rbind(codebook, c("Bed : ",bed))
-    codebook = rbind(codebook, c("Intra array : ",nor1))
-    codebook = rbind(codebook, c("Inter replica : ",nor2))
-    codebook = rbind(codebook, c("Inter experiment : ",nor3))
-    codebook = rbind(codebook, c("Smooth : ",e1))
-    codebook = rbind(codebook, c("TTR : ",e2))
-    codebook = rbind(codebook, c("Segmentation : ",e3))
-    codebook = rbind(codebook, c("All : ",e4))
+    # codebook = NULL
+    # codebook = rbind(codebook, c("File 1 : ",File1name))
+    # codebook = rbind(codebook, c("File 2 : ",File2name))
+    # codebook = rbind(codebook, c("File 3 : ",File3name))
+    # codebook = rbind(codebook, c("File 4 : ",File4name))
+    # codebook = rbind(codebook, c("Organism : ",organisme))
+    # codebook = rbind(codebook, c("Sortie image : ",sortie_image))
+    # codebook = rbind(codebook, c("Bed : ",bed))
+    # codebook = rbind(codebook, c("Intra array : ",nor1))
+    # codebook = rbind(codebook, c("Inter replica : ",nor2))
+    # codebook = rbind(codebook, c("Inter experiment : ",nor3))
+    # codebook = rbind(codebook, c("Smooth : ",e1))
+    # codebook = rbind(codebook, c("TTR : ",e2))
+    # codebook = rbind(codebook, c("Segmentation : ",e3))
+    # codebook = rbind(codebook, c("All : ",e4))
     
-    codebook = rbind(codebook, c("Differential analysis : ",e5))
+    # codebook = rbind(codebook, c("Differential analysis : ",e5))
     
-    codebook = rbind(codebook, c("Span : ",v1))
-    codebook = rbind(codebook, c("Number of SD : ",v2))
-    codebook = rbind(codebook, c("padjust : ",v3))
-    codebook = rbind(codebook, c("Smooth method : ",v4))
-    codebook = rbind(codebook, c("Size : ",v5))
-    codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
-    codebook = rbind(codebook, c("Column name of green signal : ",fs2))
-    codebook = rbind(codebook, c("Column name of red signal : ",fs3))
-    codebook = rbind(codebook, c("Early fraction : ",fs4))
-    codebook = rbind(codebook, c("Late fraction : ",fs5))
+    # codebook = rbind(codebook, c("Span : ",v1))
+    # codebook = rbind(codebook, c("Number of SD : ",v2))
+    # codebook = rbind(codebook, c("padjust : ",v3))
+    # codebook = rbind(codebook, c("Smooth method : ",v4))
+    # codebook = rbind(codebook, c("Size : ",v5))
+    # codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
+    # codebook = rbind(codebook, c("Column name of green signal : ",fs2))
+    # codebook = rbind(codebook, c("Column name of red signal : ",fs3))
+    # codebook = rbind(codebook, c("Early fraction : ",fs4))
+    # codebook = rbind(codebook, c("Late fraction : ",fs5))
 
-    if(e5){
-      codebook = rbind(codebook, c("Difference type : ",type_dif))
-      if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
-        codebook = rbind(codebook, c("P-value threshold : ",pv1))
-        codebook = rbind(codebook, c("Window size : ",pv2))
-        codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
-        codebook = rbind(codebook, c("Overlap : ",pv4))
-      }
-    }
+    # if(e5){
+      # codebook = rbind(codebook, c("Difference type : ",type_dif))
+      # if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
+        # codebook = rbind(codebook, c("P-value threshold : ",pv1))
+        # codebook = rbind(codebook, c("Window size : ",pv2))
+        # codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
+        # codebook = rbind(codebook, c("Overlap : ",pv4))
+      # }
+    # }
     
     
     #///////////////////////////////////////////////////////////////////////////
@@ -2205,6 +2214,12 @@ server <- function(input, output, session) {
       mLymph2_Cy5_Cy3 <- read.table(filename2,header=T,  comment.char = "",
                                     colClasses=classes, skip = fs1, sep = fsSep)
       
+      # Count the percentage of removed lines for repli-seq analysis
+      if (differential.analysis == TRUE && input$analysis == "repliseq"){
+        nbr.remove <- dim(file1.before.treatment)[1] - dim(mLymph1_Cy5_Cy3)[1]
+        percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
+      }
+
       #-------------------------------------------------------------------------
       # Intensity extraction
       #-------------------------------------------------------------------------
@@ -4665,6 +4680,62 @@ server <- function(input, output, session) {
       write.table(tab_pourcentage,filename, row.names=F, quote=F, sep="\t")
       
     }
+
+    #///////////////////////////////////////////////////////////////////////////
+    # Creating a codebook
+    #///////////////////////////////////////////////////////////////////////////
+    
+    ###############################
+    codebook = NULL
+    codebook = rbind(codebook, c("File 1 : ",File1name))
+    codebook = rbind(codebook, c("File 2 : ",File2name))
+    codebook = rbind(codebook, c("File 3 : ",File3name))
+    codebook = rbind(codebook, c("File 4 : ",File4name))
+    if (input$analysis == "microarray"){
+      codebook = rbind(codebook, c("Total number of lines : ", nbr.total))
+      codebook = rbind(codebook, c("Number of removed lines : ", nbr.remove))
+      codebook = rbind(codebook, c("Percentage of removed lines (%) : ", percentage.remove))
+    }
+    codebook = rbind(codebook, c("Organism : ",organisme))
+    codebook = rbind(codebook, c("Sortie image : ",sortie_image))
+    codebook = rbind(codebook, c("Bed : ",bed))
+    codebook = rbind(codebook, c("Intra array : ",nor1))
+    codebook = rbind(codebook, c("Inter replica : ",nor2))
+    codebook = rbind(codebook, c("Inter experiment : ",nor3))
+    codebook = rbind(codebook, c("Smooth : ",e1))
+    codebook = rbind(codebook, c("TTR : ",e2))
+    codebook = rbind(codebook, c("Segmentation : ",e3))
+    codebook = rbind(codebook, c("All : ",e4))
+    
+    codebook = rbind(codebook, c("Differential analysis : ",e5))
+    
+    if (differential.analysis == TRUE && input$analysis == "repliseq"){
+      codebook = rbind(codebook, c("Total number of lines : ", nbr.total))
+      codebook = rbind(codebook, c("Number of removed lines : ", nbr.remove))
+      codebook = rbind(codebook, c("Percentage of removed lines (%) : ", percentage.remove))
+    }
+    codebook = rbind(codebook, c("Span : ",v1))
+    codebook = rbind(codebook, c("Number of SD : ",v2))
+    codebook = rbind(codebook, c("padjust : ",v3))
+    codebook = rbind(codebook, c("Smooth method : ",v4))
+    codebook = rbind(codebook, c("Size : ",v5))
+    codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
+    codebook = rbind(codebook, c("Column name of green signal : ",fs2))
+    codebook = rbind(codebook, c("Column name of red signal : ",fs3))
+    codebook = rbind(codebook, c("Early fraction : ",fs4))
+    codebook = rbind(codebook, c("Late fraction : ",fs5))
+    ###############################
+
+    if(e5){
+      codebook = rbind(codebook, c("Difference type : ", type_dif))
+      if(input$select_method_differential == "Mean method"){
+        codebook = rbind(codebook, c("P-value threshold : ", pv1))
+        codebook = rbind(codebook, c("Window size : ", pv2))
+        codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
+        codebook = rbind(codebook, c("Overlap : ", pv4))
+
+      }
+    }
     
     if(input$select_method_differential == "Euclidean method"){
       codebook = rbind(codebook, c("Threshold difference (euclidienne): ",type_dif))
@@ -4675,13 +4746,6 @@ server <- function(input, output, session) {
       }
     }
 
-    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
-      codebook = rbind(codebook, c("P-value threshold : ", pv1))
-      codebook = rbind(codebook, c("Window size : ", pv2))
-      codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
-      codebook = rbind(codebook, c("Overlap : ", pv4))
-    }
-    
     # Writing the codebook in the folder
     write.table(codebook, "codebook.txt", quote = F,
                 col.names = F, row.names = F)
