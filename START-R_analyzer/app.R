@@ -592,6 +592,11 @@ ui <- tagList( useShinyjs(),
                                             
                                             
                                             column(3,
+                                                  # Choose a p-value or an automatic detection
+                                                   selectInput("select_method_pvalue", label = "Select a method for p-value",
+                                                               choices = list("Automatic detection of p-value" = "Automatic pvalue",
+                                                                              "Choose a p-value" = "Manual pvalue"),
+                                                               selected = "Manual pvalue"),
                                                    tags$b("P-value threshold :", id = "PVT1"),
                                                    numericInput("num_PVT", label = NA, value = 0.05,
                                                                 min = 0, max = 1),
@@ -1324,6 +1329,7 @@ server <- function(input, output, session) {
   
   observeEvent(input$select_method_differential, {
     if(input$select_method_differential == "Euclidean method"){
+      hideElement(id = "select_method_pvalue")
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1346,28 +1352,58 @@ server <- function(input, output, session) {
       showElement(id = "num_NP")
       
     }else if(input$select_method_differential == "Mean method"){
-      showElement(id = "PVT1")
-      showElement(id = "num_PVT")
       
-      showElement(id = "APV1")
-      showElement(id = "APV3")
-      showElement(id = "select_method_ad_PV")
-      showElement(id = "ad_PV_description")
+      showElement(id = "select_method_pvalue")
       
-      showElement(id = "WS1")
-      showElement(id = "WS2")
-      showElement(id = "num_WS")
-      
-      showElement(id = "Over1")
-      showElement(id = "Over2")
-      showElement(id = "num_Over")
-      
-      hideElement(id = "NP1")
-      hideElement(id = "NP2")
-      hideElement(id = "ET_CB")
-      hideElement(id = "num_NP")
+      observeEvent(input$select_method_pvalue, {
+        if(input$select_method_pvalue == "Automatic pvalue"){
+          hideElement(id = "PVT1")
+          hideElement(id = "num_PVT")
+          
+          showElement(id = "APV1")
+          showElement(id = "APV3")
+          showElement(id = "select_method_ad_PV")
+          showElement(id = "ad_PV_description")
+          
+          showElement(id = "WS1")
+          showElement(id = "WS2")
+          showElement(id = "num_WS")
+          
+          showElement(id = "Over1")
+          showElement(id = "Over2")
+          showElement(id = "num_Over")
+          
+          hideElement(id = "NP1")
+          hideElement(id = "NP2")
+          hideElement(id = "ET_CB")
+          hideElement(id = "num_NP")
+        }
+        else if (input$select_method_pvalue == "Manual pvalue"){
+          showElement(id = "PVT1")
+          showElement(id = "num_PVT")
+          
+          showElement(id = "APV1")
+          showElement(id = "APV3")
+          showElement(id = "select_method_ad_PV")
+          showElement(id = "ad_PV_description")
+          
+          showElement(id = "WS1")
+          showElement(id = "WS2")
+          showElement(id = "num_WS")
+          
+          showElement(id = "Over1")
+          showElement(id = "Over2")
+          showElement(id = "num_Over")
+          
+          hideElement(id = "NP1")
+          hideElement(id = "NP2")
+          hideElement(id = "ET_CB")
+          hideElement(id = "num_NP")
+        }
+      })
       
     }else if (input$select_method_differential == "Segment method"){
+      hideElement(id = "select_method_pvalue")
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1592,8 +1628,13 @@ server <- function(input, output, session) {
   })
   
   output$Out_differential_PVT <- renderText({
-    if(input$select_method_differential == "Mean method"){
+    # Indicate the p-value in the summary
+    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
       paste("PVT :", input$num_PVT)
+    }
+    # Otherwise indicate that the p-value is detected automatically
+    else if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
+        paste("PVT :", "Automatic detection of p-value")
     }
   })
   
@@ -1949,10 +1990,10 @@ server <- function(input, output, session) {
     codebook = rbind(codebook, c("Column name of red signal : ",fs3))
     codebook = rbind(codebook, c("Early fraction : ",fs4))
     codebook = rbind(codebook, c("Late fraction : ",fs5))
-    
+
     if(e5){
       codebook = rbind(codebook, c("Difference type : ",type_dif))
-      if(input$select_method_differential == "Mean method"){
+      if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
         codebook = rbind(codebook, c("P-value threshold : ",pv1))
         codebook = rbind(codebook, c("Window size : ",pv2))
         codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
@@ -3265,15 +3306,455 @@ server <- function(input, output, session) {
     
     
     if (e5 == TRUE){
+
       dir.create("Differential")
       dir.create("Differential/Viewer")
+      dir.create("Differential/Pvalue")
+
+      if (input$select_method_pvalue == "Automatic pvalue"){
+        
+        ALL_dif = NULL
+        tab_pourcentage = NULL
+        max_tot = 0
+        sum_tot = 0
+        tab_coord_dif = NULL
+        
+        # Test mean method with these p-values
+        list.pvalues <- sort(c(seq(1e-1, 1, 0.05), seq(1e-2, 0.095, 0.005), seq(1e-3, 0.0095, 0.0005), 
+                               1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 
+                               1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 1e-18, 1e-19, 1e-20, 
+                               1e-21, 1e-22, 1e-23, 1e-24, 1e-25, 1e-26, 1e-27, 1e-28, 1e-29, 1e-30))
+        pvalues <- c()
+        nbr.diff.regions <- c()
+        per <- c()
+        
+        for (pv1 in list.pvalues){
+          
+          ALL_dif = NULL
+          tab_pourcentage = NULL
+          max_tot = 0
+          sum_tot = 0
+          tab_coord_dif = NULL
+          
+          for (chr in chrs2){
+            cat(paste("dif :", chr), file = stderr())
+            top = 0
+            flag = 0
+            etat = 0
+            #=======================================================================
+            # Read data
+            #=======================================================================
+            
+            All_data1 = read.table(paste("Experience_1/Chromosomes/", chr,".txt",
+                                         sep = ""), header = T)
+            Loess_data1 = read.table(paste("Experience_1/Chromosomes/Loess_", chr,".txt",
+                                           sep = ""), header = T)
+            Seg_data1 = read.table(paste("Experience_1/Chromosomes/Segmentation_",
+                                         chr,".bed", sep = ""), header = T)
+            TTR1 = read.table(paste("Experience_1/Chromosomes/TTR_", chr,".bed",
+                                    sep = ""), header = F)
+            
+            All_data2 = read.table(paste("Experience_2/Chromosomes/", chr,".txt",
+                                         sep = ""), header = T)
+            Loess_data2 = read.table(paste("Experience_2/Chromosomes/Loess_",
+                                           chr,".txt", sep = ""), header = T)
+            Seg_data2 = read.table(paste("Experience_2/Chromosomes/Segmentation_",
+                                         chr,".bed", sep = ""), header = T)
+            TTR2 = read.table(paste("Experience_2/Chromosomes/TTR_", chr,".bed",
+                                    sep = ""), header = F)
+            
+            lspan = v1/(max(All_data1$POSITION)-min(All_data1$POSITION))
+            
+            RTb = cbind(All_data1$CHR, All_data1$POSITION, All_data1$mLymphAve,
+                        All_data2$mLymphAve)
+            RTb = as.data.frame(RTb)
+            colnames(RTb)  = c("CHR","POSITION", "E1", "E2")
+            
+            if (type_dif == "Mean method"){
+              taille_fenetre = pv2
+              overlap = pv4
+              p_value = pv1
+              log_p = 1 - log(p_value)
+              
+              tab_pval = matrix(0,dim(RTb)[1]/(taille_fenetre-overlap)-2,8)
+              colnames(tab_pval) = c("POSITION","pval", "log", "col", "m1", "m2",
+                                     "col2", "dif")
+              posp = seq(1,dim(RTb)[1], taille_fenetre-overlap)
+              
+              for (i in 1:floor(dim(RTb)[1]/(taille_fenetre-overlap)-2) ){
+                tab_pval[i,1] = as.numeric(as.character( RTb[posp[i], 2])) #+ floor(taille_fenetre/2)
+                a = as.numeric(as.character(RTb[posp[i]:(posp[i]+taille_fenetre-1),3]))
+                b = as.numeric(as.character(RTb[posp[i]:(posp[i]+taille_fenetre-1),4]))
+                
+                if(anyNA(a) == TRUE || anyNA(b) == TRUE  ){
+                  tab_pval[i,2] = 0
+                  tab_pval[i,3] = 0
+                  tab_pval[i,5] = 0
+                  tab_pval[i,6] = 0
+                }else {
+                  tab_pval[i,2] = t.test(a,b)$p.value
+                  tab_pval[i,3] = 1 - log10(as.numeric(as.character(tab_pval[i,2])))
+                  tab_pval[i,5] = mean(a)
+                  tab_pval[i,6] = mean(b)
+                }
+              }
+              tab_pval[, 2] =  p.adjust(as.numeric(as.character(tab_pval[,2])), method = pv3)
+              
+              for (i in 1:floor(dim(RTb)[1]/(taille_fenetre-overlap)-2) ){
+                if (as.numeric(as.character(tab_pval[i,3])) < log_p){
+                  tab_pval[i,4] = "forestgreen"
+                }else if (as.numeric(as.character(tab_pval[i,3])) > log_p){
+                  tab_pval[i,4] = "red"
+                }
+                
+                tab_pval[i,8]= as.numeric(as.character(tab_pval[i,5]))-as.numeric(as.character(tab_pval[i,6]))
+                
+                if (is.na(as.numeric(as.character(tab_pval[i,5])) ) || is.na(as.numeric(as.character(tab_pval[i,5])) )){
+                  tab_pval[i,7] = "white"
+                  tab_pval[i,8] = 0
+                }else if (as.numeric(as.character(tab_pval[i,5])) > as.numeric(as.character(tab_pval[i,6])) && as.numeric(as.character(tab_pval[i,3])) > log_p){
+                  tab_pval[i,7] = "blue"
+                }else if (as.numeric(as.character(tab_pval[i,5])) < as.numeric(as.character(tab_pval[i,6])) && as.numeric(as.character(tab_pval[i,3])) > log_p ){
+                  tab_pval[i,7] = "chocolate"
+                }
+                
+              }
+              
+              if (organisme == "Human"){
+                centro = centromere(chr,"hg18")
+              }
+              else if (organisme == "hg19"){
+                centro = centromere(chr,"hg19")
+              }
+              else if (organisme == "hg38"){
+                index.chr <- which(hg38$chrom %in% chr)
+                centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+              }
+              else if (organisme == "noCentromere" ){
+                centro = no_centro(chr)
+              }else {
+                centro = centro_Other(tableauCentro, chr)
+              }
+              
+              pos_centro = centro
+              
+              tab_centro = rbind(cbind(as.character(chr) ,pos_centro[1]),cbind(as.character(chr),pos_centro[2]))
+              tab_centro = as.data.frame(tab_centro)
+              tab_centro[,1] = as.character(tab_centro[,1])
+              
+              if (length(2: (nrow(All_data1)-1)) >=1000){
+                pos_sample = sample(2: (nrow(All_data1)-1), 1000)
+              } else {
+                pos_sample = sample(2: (nrow(All_data1)-1), length(2: (nrow(All_data1)-1)))
+              }
+              
+              
+              # Calculation of the average size between 2 positions
+              M_sample = NULL
+              for(comp_sample in pos_sample){
+                M_sample = c(M_sample, mean(c((All_data1$POSITION[comp_sample]- All_data1$POSITION[(comp_sample-1)]),(All_data1$POSITION[(comp_sample+1)] - All_data1$POSITION[(comp_sample)]))))
+              }
+              moyenne_entre_pos = mean(M_sample)
+              
+              centro_chrom = subset(tab_centro, tab_centro$V1 == chr)
+              mat_centro = matrix(0,dim( centro_chrom)[1],8)
+              colnames(mat_centro) = colnames(tab_pval)
+              
+              mat_centro[,1] = as.numeric(as.character(centro_chrom[,2]))
+              mat_centro[,2] = 1
+              mat_centro[,3] = 1 - log10(as.numeric(as.character(mat_centro[,2])))
+              mat_centro[,4] = "forestgreen"
+              mat_centro[,7] = "white"
+              
+              tab_pval = rbind(tab_pval,mat_centro)
+              tab_pval = as.data.frame(tab_pval)
+              tab_pval[,1] = as.numeric(as.character(tab_pval[,1]))
+              tab_pval = tab_pval[order(tab_pval[,1]),]
+              tab_pval = as.matrix(tab_pval)
+              
+              etat = 0
+              compt = 0
+              test = NULL
+              
+              ###
+              iteration.pos0.delayed <- 0
+              iteration.pos0.advanced <- 0
+              ###
+              
+              for (i in 2 : (dim(tab_pval)[1]-1)){
+                
+                if (tab_pval[i,4] != "forestgreen"){
+                  if (tab_pval[i,7] == "blue"){
+                    etat = etat + 2
+                    compt = compt +1
+                  }else if (tab_pval[i,7] == "chocolate"){
+                    etat = etat - 1
+                    compt = compt +1
+                  } else if (tab_pval[i,7] == "white")
+                    etat = etat
+                }
+                
+                if ( tab_pval[i,4] != "forestgreen" & i == (dim(tab_pval)[1]-1)){
+                  max = tab_pval[i,"POSITION"]
+                  top = 2
+                }
+                
+                if ( tab_pval[i-1,4] != "forestgreen" & i-1 == 1){
+                  min = tab_pval[i,"POSITION"]
+                  top = 1
+                }
+                if (tab_pval[i,4] == "forestgreen" & tab_pval[i+1,4] != "forestgreen" & tab_pval[i-1,4] != "forestgreen"){
+                  flag = 1
+                  min2 = tab_pval[i,"POSITION"]
+                  max = tab_pval[i,"POSITION"]
+                  
+                  # Recover the first value (when iteration.pos = 0)
+                  if (iteration.pos0.delayed == 0 && etat == 2 * compt){
+                    pos.0.delayed <- as.numeric(min2)
+                    iteration.pos0.delayed <- iteration.pos0.delayed + 1
+                  }
+                  
+                  if (iteration.pos0.advanced == 0 && etat == -1 * compt){
+                    pos.0.advanced <- as.numeric(min2)
+                    iteration.pos0.advanced <- iteration.pos0.advanced + 1
+                  }
+                  
+                  top = top + 1
+                  
+                }
+                
+                if( tab_pval[i,4] == "forestgreen" & tab_pval[i-1,4] == "forestgreen" & tab_pval[i+1,4] != "forestgreen" & top != 1){
+                  min = tab_pval[i,"POSITION"]
+                  top = top +1
+                  
+                }
+                if( tab_pval[i,4] == "forestgreen" & tab_pval[i+1,4] == "forestgreen" & tab_pval[i-1,4] != "forestgreen" & top == 1){
+                  max = tab_pval[i,"POSITION"]
+                  top = top + 1
+                  
+                }
+                
+                if(top == 2){
+                  if (flag == 0){
+                    if ( etat == 2 * compt){
+                      STATE = "DELAYED"
+                    } else if (etat == -1 * compt){
+                      STATE = "ADVANCED"
+                    }else{
+                      STATE = "ADVANCED & DELAYED"
+                    }
+                    tab_coord_dif = rbind(tab_coord_dif, c(CHR = chr,START = min,END = max, STATE = STATE))
+                    top = 0
+                    compt = 0
+                    etat = 0
+                    test = c(test, etat)
+                  }
+                  if (flag == 1){
+                    if ( etat == 2 * compt){
+                      STATE = "DELAYED"
+                    } else if (etat == -1 * compt){
+                      STATE = "ADVANCED"
+                    }else{
+                      STATE = "ADVANCED & DELAYED"
+                    }
+                    tab_coord_dif = rbind(tab_coord_dif, c(CHR = chr,START = min,END = max, STATE = STATE))
+                    min = min2
+                    top = 1
+                    flag = 0
+                    compt = 0
+                    etat = 0
+                    test = c(test, etat)
+                  }
+                }
+              }
+              
+              inter = tab_coord_dif[tab_coord_dif[,1]== chr,]
+              if (is.vector(inter) == TRUE)
+                inter = matrix (inter,1,3)
+              debut1 = NULL
+              debut2 = NULL
+              delayed = NULL
+              advanced = NULL
+              inter = as.data.frame(inter)
+              inter_ad = inter[inter$STATE == "ADVANCED",]
+              if (dim(inter_ad)[1] != 0){
+                debut1 = as.numeric(as.character(inter_ad[,2]))
+                fin1 = as.numeric(as.character(inter_ad[,3]))
+              }
+              
+              
+              inter_de = inter[inter$STATE == "DELAYED",]
+              if(dim(inter_de)[1] != 0){
+                debut2 = as.numeric(as.character(inter_de[,2]))
+                fin2 = as.numeric(as.character(inter_de[,3]))
+              }
+              
+              # Vector "debut1" : add the missing position if it exists (for the first value when top < 2)
+              if (!is.null(debut1) && is.na(debut1[1])){
+                debut1[1] <- pos.0.advanced
+              }
+              
+              if (!is.null(debut1[1])){
+                if(debut1[1] == 0){
+                  debut1[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
+                }
+              }
+              
+              # Vector "debut2" : add the missing position if it exists (for the first value when top < 2)
+              if (!is.null(debut2) && is.na(debut2[1])){
+                debut2[1] <- pos.0.delayed
+              }
+              
+              if (!is.null(debut2[1])){
+                if(debut2[1] == 0){
+                  debut2[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
+                }
+              }
+              
+              if(!is.null(debut1)){
+                if (organisme == "Human"){
+                  # advanced = cbind(debut1, fin1)
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                } else if (organisme == "noCentromere"){
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                  # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) )
+                  # advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
+                } else {
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                }
+              }
+              if(!is.null(debut2)){
+                if (organisme == "Human"){
+                  # delayed= cbind(debut2, fin2)
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                } else if (organisme == "noCentromere"){
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                  # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
+                  # delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
+                } else {
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                }
+              }
+              
+              if(dim(delayed)[1] == 0 && !is.null(delayed))
+                delayed = rbind(delayed, c(NA,NA))
+              if(dim(advanced)[1] == 0 && !is.null(advanced))
+                advanced = rbind(delayed, c(NA,NA))
+            }
+            
+            if(is.null(advanced) == F){
+              advanced = as.data.frame(cbind(rep(chr, dim(advanced)[1]), advanced, rep("ADVANCED", dim(advanced)[1])))
+              names(advanced) = c("CHR","START", "END", "STATUS")
+            }
+            if(is.null(delayed) == F){
+              delayed = as.data.frame(cbind(rep(chr, dim(delayed)[1]), delayed, rep("DELAYED", dim(delayed)[1])))
+              names(delayed) = c("CHR","START", "END", "STATUS")
+            }
+            
+            ALL_dif = rbind(ALL_dif, advanced)
+            ALL_dif = rbind(ALL_dif, delayed)
+            
+            max = max(as.numeric(as.character(RTb$POSITION)))
+            dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),
+                    as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
+            sum = sum(dif)
+            max_tot = max_tot + max
+            sum_tot = sum_tot + sum
+
+          }
+          pourcentage_tot = sum_tot * 100 / max_tot
+          per <- c(per, pourcentage_tot)
+          print(pv1)
+          nbr <- dim(ALL_dif)[1]
+          if (is.null(dim(ALL_dif)[1])){
+            nbr <- 0
+          }
+          print(nbr)
+          nbr.diff.regions <- c(nbr.diff.regions, nbr)
+          pvalues <- c(pvalues, pv1)
+        }
+        
+        df.comparison.pvalue <- data.frame(PValue = pvalues, Nbr_region = nbr.diff.regions, Percentage = per)
+        write.table(df.comparison.pvalue, "Differential/Pvalue/table_results_per_pvalue.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+        
+        ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
+        ind.max.df <- which.max(df.comparison.pvalue$Percentage)
+        if (length(ind.0) > 0){
+          df <- df.comparison.pvalue[-c(ind.0[1 : (length(ind.0) - 1)], seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1)), ]
+        }
+        if (length(ind.0) == 0 && ind.max.df < dim(df.comparison.pvalue)[1]){
+          df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
+        }
+        if (length(ind.0) == 0 && ind.max.df == dim(df.comparison.pvalue)[1]){
+          df <- df.comparison.pvalue
+        }
+              
+        write.table(df, "Differential/Pvalue/table_results_per_pvalue_removed-values.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+        
+        x.values <- df$PValue
+        x <- -log10(x.values)
+        y <- df$Percentage
+        
+        # Smoothing of the curve representing the number as a function of the p-value
+        lis <- loess(y ~ x, span = 0.5)
+        ind.max.fitted <- which.max(lis$fitted)
+        
+        x.after.max <- x[1:ind.max.fitted]
+        y.after.max <- y[1:ind.max.fitted]
+        fitted <- lis$fitted[1:ind.max.fitted]
+        # Directing coefficient of the line connecting the extremities of the curve
+        a <- (fitted[1] - fitted[length(fitted)]) / (x.after.max[1] - x.after.max[length(x.after.max)])
+        # Ordinate at the origin of the line
+        b <- fitted[1] - a * x.after.max[1]
+        
+        
+        # Directing coefficient of the perpendicular line
+        a.perp <- -1 / a
+        # Ordinate at the origin of the perpendicular line for each x
+        x.smooth <- seq(x.after.max[length(x.after.max)], x.after.max[1], 0.001)
+        y.smooth <- predict(lis, x.smooth)
+        b.perp <- y.smooth - a.perp * x.smooth
+        
+        # Coordinates of the intersection points between the perpendicular lines and the segment  
+        x.perp <- (b.perp - b) / (a - a.perp)
+        y.perp <- a * x.perp + b
+        
+        # Vector containing the distances between each point on the curve and the segment
+        dist.list <- sqrt( ( x.perp - x.smooth )**2 + ( y.perp - y.smooth )**2 )
+        
+        # Value of the maximum distance between the curve and the line
+        ind.max <- which.max(dist.list)
+        # Value : -log10(p-value)
+        pv1 <- 10**-x.smooth[ind.max]
+        
+        pdf("Differential/Pvalue/Detect_the_furthest_point.pdf")
+        
+        # The curve representing the number as a function of the p-value
+        plot(x, y, xlab = "-log10(p-value)", ylab = "Percentage of different regions")
+        title(main = "Detect the furthest point of the line")
+        # Smoothing of the curve 
+        lines(lis$fitted ~ lis$x, col = "blue3", lwd = 3)
+        lines(x, a * x + b, col = "green")
+        # Line perpendicular to the segment and passing through the furthest point of the segment
+        lines(x.smooth, (a.perp * x.smooth + b.perp[ind.max]), col = "blue")
+        # Intersection between the p-value curve and the line perpendicular to the segment
+        points(x.smooth[ind.max], y.smooth[ind.max], pch = 19, col = 'red')
+        # Intersection between the perpendicular line and the segment
+        points(x.perp[ind.max], y.perp[ind.max], pch = 19, col = 'red')
+        # Value of the p-value corresponding to the maximum distance between the curve and the segment
+        abline(v = x.smooth[ind.max], col = "red")
+        
+        dev.off()
       
+      }
+
+      # Initialise the variables to perform the analysis with the chosen p-value
       ALL_dif = NULL
       tab_pourcentage = NULL
       max_tot = 0
       sum_tot = 0
-      
       tab_coord_dif = NULL
+
       
       for (chr in chrs2){
         cat(paste("dif :", chr), file = stderr())
@@ -4160,6 +4641,13 @@ server <- function(input, output, session) {
       } else {
         codebook = rbind(codebook, c("Empirical threshold (euclidienne): ",paste(seuil,"(non-automatic)")))
       }
+    }
+
+    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
+      codebook = rbind(codebook, c("P-value threshold : ", pv1))
+      codebook = rbind(codebook, c("Window size : ", pv2))
+      codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
+      codebook = rbind(codebook, c("Overlap : ", pv4))
     }
     
     # Writing the codebook in the folder
