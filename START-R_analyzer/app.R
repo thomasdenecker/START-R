@@ -597,6 +597,10 @@ ui <- tagList( useShinyjs(),
                                                                choices = list("Automatic detection of p-value" = "Automatic pvalue",
                                                                               "Choose a p-value" = "Manual pvalue"),
                                                                selected = "Manual pvalue"),
+                                                   selectInput("select_method_automatic", label = "Method for automatic detection",
+                                                               choices = list("Euclidean distance" = "Euclidean distance",
+                                                                               "Bezier curve" = "Bezier curve"),
+                                                               selected = "Manual pvalue"),
                                                    tags$b("P-value threshold :", id = "PVT1"),
                                                    numericInput("num_PVT", label = NA, value = 0.05,
                                                                 min = 0, max = 1),
@@ -1330,6 +1334,8 @@ server <- function(input, output, session) {
   observeEvent(input$select_method_differential, {
     if(input$select_method_differential == "Euclidean method"){
       hideElement(id = "select_method_pvalue")
+      hideElement(id = "select_method_automatic")
+
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1357,6 +1363,8 @@ server <- function(input, output, session) {
       
       observeEvent(input$select_method_pvalue, {
         if(input$select_method_pvalue == "Automatic pvalue"){
+          showElement(id = "select_method_automatic")
+
           hideElement(id = "PVT1")
           hideElement(id = "num_PVT")
           
@@ -1379,6 +1387,8 @@ server <- function(input, output, session) {
           hideElement(id = "num_NP")
         }
         else if (input$select_method_pvalue == "Manual pvalue"){
+          hideElement(id = "select_method_automatic")
+
           showElement(id = "PVT1")
           showElement(id = "num_PVT")
           
@@ -1404,6 +1414,8 @@ server <- function(input, output, session) {
       
     }else if (input$select_method_differential == "Segment method"){
       hideElement(id = "select_method_pvalue")
+      hideElement(id = "select_method_automatic")
+
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1635,6 +1647,7 @@ server <- function(input, output, session) {
     # Otherwise indicate that the p-value is detected automatically
     else if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
         paste("PVT :", "Automatic detection of p-value")
+        paste("Method of automatic detection :", input$select_method_automatic)
     }
   })
   
@@ -1788,6 +1801,22 @@ server <- function(input, output, session) {
       x[2] <- new.pos.start
       x[3] <- new.pos.end
       return(x)
+    }
+
+    # Prediction of tangent from a point
+    tangent <- function(x.tangent, smooth){
+      pred.deriv0 <- predict(smooth, x = x.tangent, deriv = 0)
+      # Predict ordinate for first derivative
+      pred.deriv1 <- predict(smooth, x = x.tangent, deriv = 1)
+      yint <- pred.deriv0$y - (pred.deriv1$y * x.tangent)
+      xint <- - yint / pred.deriv1$y
+      return(list(pred.deriv0, pred.deriv1, xint, yint))
+    }
+    
+    # Calculate euclidean distance between two points
+    dist.euclid <- function(x1, x2, y1, y2){
+      dist <- sqrt((x1 - x2)**2 + (y1 - y2)**2)
+      return(dist)
     }
     
     ################################################################################
@@ -3352,10 +3381,11 @@ server <- function(input, output, session) {
 
       dir.create("Differential")
       dir.create("Differential/Viewer")
-      dir.create("Differential/Pvalue")
 
       if (input$select_method_pvalue == "Automatic pvalue"){
         
+        dir.create("Differential/Pvalue")
+
         ALL_dif = NULL
         tab_pourcentage = NULL
         max_tot = 0
@@ -3720,7 +3750,9 @@ server <- function(input, output, session) {
         df.comparison.pvalue <- data.frame(PValue = pvalues, Nbr_region = nbr.diff.regions, Percentage = per)
         write.table(df.comparison.pvalue, "Differential/Pvalue/table_results_per_pvalue.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
         
+        # Remove the (n - 1) lines associated with 0 when n lines contain the value 0
         ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
+        # Find the maximum value to stop the representation of the curve at this value
         ind.max.df <- which.max(df.comparison.pvalue$Percentage)
         if (length(ind.0) > 0){
           df <- df.comparison.pvalue[-c(ind.0[1 : (length(ind.0) - 1)], seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1)), ]
@@ -3734,60 +3766,188 @@ server <- function(input, output, session) {
               
         write.table(df, "Differential/Pvalue/table_results_per_pvalue_removed-values.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
         
-        x.values <- df$PValue
-        x <- -log10(x.values)
-        y <- df$Percentage
-        
-        # Smoothing of the curve representing the number as a function of the p-value
-        lis <- loess(y ~ x, span = 0.5)
-        ind.max.fitted <- which.max(lis$fitted)
-        
-        x.after.max <- x[1:ind.max.fitted]
-        y.after.max <- y[1:ind.max.fitted]
-        fitted <- lis$fitted[1:ind.max.fitted]
-        # Directing coefficient of the line connecting the extremities of the curve
-        a <- (fitted[1] - fitted[length(fitted)]) / (x.after.max[1] - x.after.max[length(x.after.max)])
-        # Ordinate at the origin of the line
-        b <- fitted[1] - a * x.after.max[1]
-        
-        
-        # Directing coefficient of the perpendicular line
-        a.perp <- -1 / a
-        # Ordinate at the origin of the perpendicular line for each x
-        x.smooth <- seq(x.after.max[length(x.after.max)], x.after.max[1], 0.001)
-        y.smooth <- predict(lis, x.smooth)
-        b.perp <- y.smooth - a.perp * x.smooth
-        
-        # Coordinates of the intersection points between the perpendicular lines and the segment  
-        x.perp <- (b.perp - b) / (a - a.perp)
-        y.perp <- a * x.perp + b
-        
-        # Vector containing the distances between each point on the curve and the segment
-        dist.list <- sqrt( ( x.perp - x.smooth )**2 + ( y.perp - y.smooth )**2 )
-        
-        # Value of the maximum distance between the curve and the line
-        ind.max <- which.max(dist.list)
-        # Value : -log10(p-value)
-        pv1 <- 10**-x.smooth[ind.max]
-        
-        pdf("Differential/Pvalue/Detect_the_furthest_point.pdf")
-        
-        # The curve representing the number as a function of the p-value
-        plot(x, y, xlab = "-log10(p-value)", ylab = "Percentage of different regions")
-        title(main = "Detect the furthest point of the line")
-        # Smoothing of the curve 
-        lines(lis$fitted ~ lis$x, col = "blue3", lwd = 3)
-        lines(x, a * x + b, col = "green")
-        # Line perpendicular to the segment and passing through the furthest point of the segment
-        lines(x.smooth, (a.perp * x.smooth + b.perp[ind.max]), col = "blue")
-        # Intersection between the p-value curve and the line perpendicular to the segment
-        points(x.smooth[ind.max], y.smooth[ind.max], pch = 19, col = 'red')
-        # Intersection between the perpendicular line and the segment
-        points(x.perp[ind.max], y.perp[ind.max], pch = 19, col = 'red')
-        # Value of the p-value corresponding to the maximum distance between the curve and the segment
-        abline(v = x.smooth[ind.max], col = "red")
-        
-        dev.off()
+        if (input$select_method_automatic == "Euclidean distance"){
+
+          # Recover values from dataframe
+          x.values <- df$PValue
+          x <- -log10(x.values)
+          y <- df$Percentage
+          
+          # Smoothing of the curve representing the number as a function of the p-value
+          lis <- loess(y ~ x, span = 0.5)
+          # Study the curve between the first value and the value associated to the highest y (ordinate)
+          ind.max.fitted <- which.max(lis$fitted)
+          x.after.max <- x[1:ind.max.fitted]
+          y.after.max <- y[1:ind.max.fitted]
+          fitted <- lis$fitted[1:ind.max.fitted]
+          # Directing coefficient of the line connecting the extremities of the curve
+          a <- (fitted[1] - fitted[length(fitted)]) / (x.after.max[1] - x.after.max[length(x.after.max)])
+          # Ordinate at the origin of the line
+          b <- fitted[1] - a * x.after.max[1]   
+          
+          # Directing coefficient of the perpendicular line
+          a.perp <- -1 / a
+          # Ordinate at the origin of the perpendicular line for each x
+          x.smooth <- seq(x.after.max[length(x.after.max)], x.after.max[1], 0.001)
+          y.smooth <- predict(lis, x.smooth)
+          b.perp <- y.smooth - a.perp * x.smooth
+          
+          # Coordinates of the intersection points between the perpendicular lines and the segment  
+          x.perp <- (b.perp - b) / (a - a.perp)
+          y.perp <- a * x.perp + b
+          
+          # Vector containing the distances between each point on the curve and the segment
+          dist.list <- sqrt( ( x.perp - x.smooth )**2 + ( y.perp - y.smooth )**2 )
+          
+          # Value of the maximum distance between the curve and the line
+          ind.max <- which.max(dist.list)
+          # Value : -log10(p-value)
+          pv1 <- 10**-x.smooth[ind.max]
+          
+          pdf("Differential/Pvalue/Detect_the_furthest_point.pdf")
+          
+          # The curve representing the number as a function of the p-value
+          plot(x, y, xlab = "-log10(p-value)", ylab = "Percentage of different regions")
+          title(main = "Detect the furthest point of the line")
+          # Smoothing of the curve 
+          lines(lis$fitted ~ lis$x, col = "blue3", lwd = 3)
+          lines(x, a * x + b, col = "green")
+          # Line perpendicular to the segment and passing through the furthest point of the segment
+          lines(x.smooth, (a.perp * x.smooth + b.perp[ind.max]), col = "blue")
+          # Intersection between the p-value curve and the line perpendicular to the segment
+          points(x.smooth[ind.max], y.smooth[ind.max], pch = 19, col = 'red')
+          # Intersection between the perpendicular line and the segment
+          points(x.perp[ind.max], y.perp[ind.max], pch = 19, col = 'red')
+          # Value of the p-value corresponding to the maximum distance between the curve and the segment
+          abline(v = x.smooth[ind.max], col = "red")
+          
+          dev.off()
+        }
+
+        if (input$select_method_automatic == "Bezier curve"){
+
+          x <- -log10(df$PValue)
+          y <- df$Percentage
+          # Smooth the curve
+          spl <- smooth.spline(y ~ x, spar = 0.5)
+          
+          # Check whether smoothing changes the profile
+          # If it does, then the maximum value is changed
+          ind.diff <- which(diff(spl$y) > 0.5)
+          if (length(ind.diff) > 1){
+            ind.diff <- ind.diff[ind.diff < 0.5 * length(x)]
+          }
+          if (length(ind.diff) > 0){
+            ind.begin <- length(x) - max(ind.diff)
+          }
+          if (length(ind.diff) == 0){
+            ind.begin <- length(x)
+          }
+          # Update usable values
+          x <- x[1:ind.begin]
+          y <- y[1:ind.begin]
+          spl <- smooth.spline(y ~ x, spar = 0.5)
+          
+          write.table(data.frame(PValue = 10**-x, Percentage = y), "Differential/Pvalue/table_results_per_pvalue_removed-values_Bezier-curve.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+
+          # Add points thanks to an approximation
+          approximation <- approx(x, y, n = 1000, yleft = min(y), yright = max(y))
+          x <- approximation$x
+          y <- approximation$y
+
+          # Find points to determine tangents to the curve
+          ind.min <- length(spl$y)
+          ind.max <- which.max(spl$y)
+          x.tangent1 <- spl$x[ind.min]
+          x.tangent2 <- spl$x[ind.max]
+
+          # Find points along each tangent
+          predictions1 <- tangent(x.tangent1, spl)
+          predictions2 <- tangent(x.tangent2, spl)
+          y.tangent1 = predictions1[[4]] + predictions1[[2]]$y * x
+          y.tangent2 = predictions2[[4]] + predictions2[[2]]$y * x
+
+          # Find the intersection of tangents
+          # Tangent 1
+          xs1 = c(spl$x[1], spl$x[length(spl$x)])
+          ys1 = c(y.tangent1[1], y.tangent1[length(y.tangent1)])
+          # Fit a linear equation that predicts ys using xs
+          tangent1 <- lm(ys1 ~ xs1)
+          b.t1 <- as.numeric(tangent1$coefficients[1])
+          a.t1 <- as.numeric(tangent1$coefficients[2])
+          # Tangent 2
+          xs2 = c(spl$x[1], spl$x[length(spl$x)])
+          ys2 = c(y.tangent2[1], y.tangent2[length(y.tangent2)])
+          # Fit a linear equation that predicts ys using xs
+          tangent2 <- lm(ys2 ~ xs2)
+          b.t2 <- as.numeric(tangent2$coefficients[1])
+          a.t2 <- as.numeric(tangent2$coefficients[2])
+          # Abscissa and ordinate of intersection point
+          x.inter <- (b.t2 - b.t1) / (a.t1 - a.t2)
+          y.inter <- a.t1 * x.inter + b.t1
+
+          # Middle of tangents
+          # Tangent 1
+          x.middle1 <- ( x.inter + x.tangent1 ) / 2
+          y.middle1 <- ( y.inter + (a.t1 * x.tangent1 + b.t1) ) / 2
+          # Tangent 2
+          x.middle2 <- ( x.inter + x.tangent2 ) / 2
+          y.middle2 <- ( y.inter + (a.t2 * x.tangent2 + b.t2) ) / 2
+
+          # Middle of line binding the middle of each tangent
+          x.middle <- ( x.middle1 + x.middle2 ) / 2
+          y.middle <- ( y.middle1 + y.middle2 ) / 2
+          
+          # Line binding the middle of each tangent
+          a.middles <- (y.middle1 - y.middle2) / (x.middle1 - x.middle2)
+          b.middles <- y.middle1 - a.middles * x.middle1
+          
+          # Line connecting intersection of tangents and the last middle point
+          a.final <- (y.middle - y.inter) / (x.middle - x.inter)
+          b.final <- y.middle - a.final * x.middle
+          
+          # Find intersection between the last line and the curve
+          ind.x.interval1 <- which(spl$x > x.inter)
+          x.interval.few.points <- spl$x[ind.x.interval1]
+          # Increase the precision of detection thanks to the using of more points
+          x.interval <- seq(x.interval.few.points[1], x.interval.few.points[length(x.interval.few.points)], 10**-3)
+          dist <- dist.euclid(x.interval, x.interval, (a.final * x.interval + b.final), predict(spl, x.interval)$y)
+          ind.pval <- which.min(dist)
+          pval <- x.interval[ind.pval]
+          pv1 <- 10**-pval
+
+          pdf("Differential/Pvalue/Bezier-curve_pvalue-detection.pdf")
+
+          # The curve representing the number as a function of the p-value
+          plot(x, y, main = "Automatic detection of p-value : Bezier curve", xlab = "-log10(p-value)", ylab = "Percentage of different regions")
+          # Smoothing of the curve
+          lines(spl, col = "blue3", lwd = 3)
+          # Point from which the tangent 1 is constructed
+          points(predictions1[[1]], col = 2, pch = 19)
+          # Line of tangent 1
+          lines(x, y.tangent1, col = 3)
+          # Point from which the tangent 2 is constructed
+          points(predictions2[[1]], col = 2, pch = 19)
+          # Line of tangent 2
+          lines(x, y.tangent2, col = 3)
+          # Point of intersection between the two tangents
+          points(x.inter, y.inter, col = 2, pch = 19)
+          # Point in the middle of the tangent 1
+          points(x.middle1, y.middle1, col = 3, pch = 19)
+          # Point in the middle of the tangent 2
+          points(x.middle2, y.middle2, col = 3, pch = 19)
+          # Line passing through the two previous middles
+          lines(x, (a.middles * x + b.middles), col = 3)
+          # Point located in the middle of the segment passing through the two previous middles
+          points(x.middle, y.middle, col = 3, pch = 19)
+          # Line connecting the last midpoint to the point of intersection of the tangents
+          lines(x, (a.final * x + b.final), col = 3)
+          # p-value point
+          abline(v = pval, col = "red")
+          points(pval, predict(spl, pval)$y, col = "red", pch = 19)
+
+          dev.off()
+        }
       
       }
 
@@ -4727,14 +4887,21 @@ server <- function(input, output, session) {
     ###############################
 
     if(e5){
-      codebook = rbind(codebook, c("Difference type : ", type_dif))
-      if(input$select_method_differential == "Mean method"){
-        codebook = rbind(codebook, c("P-value threshold : ", pv1))
-        codebook = rbind(codebook, c("Window size : ", pv2))
-        codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
-        codebook = rbind(codebook, c("Overlap : ", pv4))
-
+      codebook = rbind(codebook, c("Difference type : ",type_dif))
+      if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
+        codebook = rbind(codebook, c("P-value threshold : ",pv1))
+        codebook = rbind(codebook, c("Window size : ",pv2))
+        codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
+        codebook = rbind(codebook, c("Overlap : ",pv4))
       }
+    }
+
+    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
+      codebook = rbind(codebook, c("Method of automatic detection : ", input$select_method_automatic))
+      codebook = rbind(codebook, c("P-value threshold : ", pv1))
+      codebook = rbind(codebook, c("Window size : ", pv2))
+      codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
+      codebook = rbind(codebook, c("Overlap : ", pv4))
     }
     
     if(input$select_method_differential == "Euclidean method"){
