@@ -3786,20 +3786,20 @@ server <- function(input, output, session) {
         #   df <- df.comparison.pvalue
         # }
         
-        ind.0 <- which(df$Percentage %in% 0)
+        ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
         # Check if we have replicates (if few p-values are associated to a number > 0)
         if (length(ind.0) > 80){
           df <- df.comparison.pvalue[-ind.0, ]
-          pv1 <- df[which.min(df$PValue), "PValue"]
+          pv1 <- df[which.min(df.comparison.pvalue$PValue), "PValue"]
         }
         if (length(ind.0) < 80){
           if (length(ind.0) > 0){
-            df <- df[-ind.0, ]
+            df <- df.comparison.pvalue[-ind.0, ]
           }
           # Find the maximum value to stop the representation of the curve at this value
-          ind.max.df <- which.max(df$Percentage)
-          if (ind.max.df < dim(df)[1]){
-            df <- df[-seq((ind.max.df + 1), dim(df)[1], 1), ]
+          ind.max.df <- which.max(df.comparison.pvalue$Percentage)
+          if (ind.max.df < dim(df.comparison.pvalue)[1]){
+            df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
           }
         }
               
