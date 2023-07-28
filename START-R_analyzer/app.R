@@ -1804,13 +1804,35 @@ server <- function(input, output, session) {
     }
 
     # Prediction of tangent from a point
-    tangent <- function(x.tangent, smooth){
-      pred.deriv0 <- predict(smooth, x = x.tangent, deriv = 0)
-      # Predict ordinate for first derivative
-      pred.deriv1 <- predict(smooth, x = x.tangent, deriv = 1)
-      yint <- pred.deriv0$y - (pred.deriv1$y * x.tangent)
-      xint <- - yint / pred.deriv1$y
-      return(list(pred.deriv0, pred.deriv1, xint, yint))
+    # tangent <- function(x.tangent, smooth){
+    #   pred.deriv0 <- predict(smooth, x = x.tangent, deriv = 0)
+    #   # Predict ordinate for first derivative
+    #   pred.deriv1 <- predict(smooth, x = x.tangent, deriv = 1)
+    #   yint <- pred.deriv0$y - (pred.deriv1$y * x.tangent)
+    #   xint <- - yint / pred.deriv1$y
+    #   return(list(pred.deriv0, pred.deriv1, xint, yint))
+    # }
+    # 
+    # # Calculate euclidean distance between two points
+    # dist.euclid <- function(x1, x2, y1, y2){
+    #   dist <- sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    #   return(dist)
+    # }
+    
+    # PValuator functions
+    
+    # Remove a part of the data (to avoid obtaining a plateau that is too long for small p-values)
+    remove.small.var <- function(df, value){
+      # Remove values of the distribution when they are too close
+      variance <- c()
+      for (i in 1:(dim(df)[1] - 1)){
+        variance <- c(variance, var(df$Percentage[1:(i+1)]))
+      }
+      # Keep positions of variances
+      ind.var <- which(variance > (variance[length(variance)] * value))
+      # Keep lines of interest : -1 to recover the previous value and +1 to recover the last value used to calculate the variance
+      df <- df[(ind.var[1] - 1):(ind.var[length(ind.var)] + 1), ]
+      return(df)
     }
     
     # Calculate euclidean distance between two points
@@ -3750,67 +3772,90 @@ server <- function(input, output, session) {
         df.comparison.pvalue <- data.frame(PValue = pvalues, Nbr_region = nbr.diff.regions, Percentage = per)
         write.table(df.comparison.pvalue, "Differential/Pvalue/table_results_per_pvalue.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
         
-        # Remove the (n - 1) lines associated with 0 when n lines contain the value 0
-        ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
-        # Find the maximum value to stop the representation of the curve at this value
-        ind.max.df <- which.max(df.comparison.pvalue$Percentage)
-        if (length(ind.0) > 0){
-          df <- df.comparison.pvalue[-c(ind.0[1 : (length(ind.0) - 1)], seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1)), ]
+        # # Remove the (n - 1) lines associated with 0 when n lines contain the value 0
+        # ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
+        # # Find the maximum value to stop the representation of the curve at this value
+        # ind.max.df <- which.max(df.comparison.pvalue$Percentage)
+        # if (length(ind.0) > 0){
+        #   df <- df.comparison.pvalue[-c(ind.0[1 : (length(ind.0) - 1)], seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1)), ]
+        # }
+        # if (length(ind.0) == 0 && ind.max.df < dim(df.comparison.pvalue)[1]){
+        #   df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
+        # }
+        # if (length(ind.0) == 0 && ind.max.df == dim(df.comparison.pvalue)[1]){
+        #   df <- df.comparison.pvalue
+        # }
+        
+        ind.0 <- which(df$Percentage %in% 0)
+        # Check if we have replicates (if few p-values are associated to a number > 0)
+        if (length(ind.0) > 80){
+          df <- df.comparison.pvalue[-ind.0, ]
+          pv1 <- df[which.min(df$PValue), "PValue"]
         }
-        if (length(ind.0) == 0 && ind.max.df < dim(df.comparison.pvalue)[1]){
-          df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
-        }
-        if (length(ind.0) == 0 && ind.max.df == dim(df.comparison.pvalue)[1]){
-          df <- df.comparison.pvalue
+        if (length(ind.0) < 80){
+          if (length(ind.0) > 0){
+            df <- df[-ind.0, ]
+          }
+          # Find the maximum value to stop the representation of the curve at this value
+          ind.max.df <- which.max(df$Percentage)
+          if (ind.max.df < dim(df)[1]){
+            df <- df[-seq((ind.max.df + 1), dim(df)[1], 1), ]
+          }
         }
               
         write.table(df, "Differential/Pvalue/table_results_per_pvalue_removed-values.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
         
-        if (input$select_method_automatic == "Euclidean distance"){
-
+        if (input$select_method_automatic == "Euclidean distance" && length(ind.0) < 80){
+          
+          df <- df[, c("PValue", "Percentage")]
+          df <- df[order(df$PValue), ]
+          df$PValue <- -log10(df$PValue)
+          
+          df <- remove.small.var(df, value = 5e-3)
           # Recover values from dataframe
-          x.values <- df$PValue
-          x <- -log10(x.values)
+          x <- df$PValue
           y <- df$Percentage
           
           # Smoothing of the curve representing the number as a function of the p-value
-          lis <- loess(y ~ x, span = 0.5)
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
           # Study the curve between the first value and the value associated to the highest y (ordinate)
-          ind.max.fitted <- which.max(lis$fitted)
+          ind.max.fitted <- which.max(smooth.loess$fitted)
           x.after.max <- x[1:ind.max.fitted]
           y.after.max <- y[1:ind.max.fitted]
-          fitted <- lis$fitted[1:ind.max.fitted]
+          fitted <- smooth.loess$fitted[1:ind.max.fitted]
           # Directing coefficient of the line connecting the extremities of the curve
           a <- (fitted[1] - fitted[length(fitted)]) / (x.after.max[1] - x.after.max[length(x.after.max)])
           # Ordinate at the origin of the line
-          b <- fitted[1] - a * x.after.max[1]   
+          b <- fitted[1] - a * x.after.max[1]
           
           # Directing coefficient of the perpendicular line
           a.perp <- -1 / a
           # Ordinate at the origin of the perpendicular line for each x
           x.smooth <- seq(x.after.max[length(x.after.max)], x.after.max[1], 0.001)
-          y.smooth <- predict(lis, x.smooth)
+          y.smooth <- predict(smooth.loess, x.smooth)
           b.perp <- y.smooth - a.perp * x.smooth
           
-          # Coordinates of the intersection points between the perpendicular lines and the segment  
+          # Coordinates of the intersection points between the perpendicular lines and the segment
           x.perp <- (b.perp - b) / (a - a.perp)
           y.perp <- a * x.perp + b
           
           # Vector containing the distances between each point on the curve and the segment
-          dist.list <- sqrt( ( x.perp - x.smooth )**2 + ( y.perp - y.smooth )**2 )
+          dist.list <- dist.euclid(x.perp, x.smooth, y.perp, y.smooth)
           
           # Value of the maximum distance between the curve and the line
           ind.max <- which.max(dist.list)
           # Value : -log10(p-value)
-          pv1 <- 10**-x.smooth[ind.max]
+          pval <- 10**-x.smooth[ind.max]
+          pv1 <- pval
           
           pdf("Differential/Pvalue/Detect_the_furthest_point.pdf")
           
           # The curve representing the number as a function of the p-value
           plot(x, y, xlab = "-log10(p-value)", ylab = "Percentage of different regions")
           title(main = "Detect the furthest point of the line")
-          # Smoothing of the curve 
-          lines(lis$fitted ~ lis$x, col = "blue3", lwd = 3)
+          # Smoothing of the curve
+          lines(smooth.loess$fitted ~ smooth.loess$x, col = "blue3", lwd = 3)
           lines(x, a * x + b, col = "green")
           # Line perpendicular to the segment and passing through the furthest point of the segment
           lines(x.smooth, (a.perp * x.smooth + b.perp[ind.max]), col = "blue")
@@ -3823,77 +3868,68 @@ server <- function(input, output, session) {
           
           dev.off()
         }
-
-        if (input$select_method_automatic == "Bezier curve"){
-
-          x <- -log10(df$PValue)
-          y <- df$Percentage
-          # Smooth the curve
-          spl <- smooth.spline(y ~ x, spar = 0.5)
           
-          # Check whether smoothing changes the profile
-          # If it does, then the maximum value is changed
-          ind.diff <- which(diff(spl$y) > 0.5)
-          if (length(ind.diff) > 1){
-            ind.diff <- ind.diff[ind.diff < 0.5 * length(x)]
-          }
-          if (length(ind.diff) > 0){
-            ind.begin <- length(x) - max(ind.diff)
-          }
-          if (length(ind.diff) == 0){
+        if (input$select_method_automatic == "Bezier curve" && length(ind.0) < 80){
+          
+          df <- df[, c("PValue", "Percentage")]
+          df <- df[order(df$PValue), ]
+          df$PValue <- -log10(df$PValue)
+          
+          df <- remove.small.var(df, value = 5e-3)
+          # Recover values from dataframe
+          x <- df$PValue
+          y <- df$Percentage
+          
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
+          # If smoothing changes the profile then the maximum value is changed
+          # Check whether all values are positive
+          # Negative values indicate a profile changing
+          # Tolerance threshold : [-0.5 - 0]
+          ind.diff <- which(diff(smooth.loess$fitted) < -0.5)
+          if (length(ind.diff) <= 1){
             ind.begin <- length(x)
           }
+          if (length(ind.diff) > 1){
+            # Keep the indices if they are smallest than the middle position
+            # The goal is to avoid removing a large part of data
+            ind.diff <- ind.diff[ind.diff > 0.5 * length(x)]
+            if (length(ind.diff) > 0){
+              ind.begin <- min(ind.diff)
+            }
+            if (length(ind.diff) == 0){
+              ind.begin <- length(x)
+            }
+          }
+          
           # Update usable values
           x <- x[1:ind.begin]
           y <- y[1:ind.begin]
-          spl <- smooth.spline(y ~ x, spar = 0.5)
           
-          write.table(data.frame(PValue = 10**-x, Percentage = y), "Differential/Pvalue/table_results_per_pvalue_removed-values_Bezier-curve.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
-
-          # Add points thanks to an approximation
-          approximation <- approx(x, y, n = 1000, yleft = min(y), yright = max(y))
-          x <- approximation$x
-          y <- approximation$y
-
-          # Find points to determine tangents to the curve
-          ind.min <- length(spl$y)
-          ind.max <- which.max(spl$y)
-          x.tangent1 <- spl$x[ind.min]
-          x.tangent2 <- spl$x[ind.max]
-
-          # Find points along each tangent
-          predictions1 <- tangent(x.tangent1, spl)
-          predictions2 <- tangent(x.tangent2, spl)
-          y.tangent1 = predictions1[[4]] + predictions1[[2]]$y * x
-          y.tangent2 = predictions2[[4]] + predictions2[[2]]$y * x
-
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
           # Find the intersection of tangents
-          # Tangent 1
-          xs1 = c(spl$x[1], spl$x[length(spl$x)])
-          ys1 = c(y.tangent1[1], y.tangent1[length(y.tangent1)])
-          # Fit a linear equation that predicts ys using xs
-          tangent1 <- lm(ys1 ~ xs1)
-          b.t1 <- as.numeric(tangent1$coefficients[1])
-          a.t1 <- as.numeric(tangent1$coefficients[2])
-          # Tangent 2
-          xs2 = c(spl$x[1], spl$x[length(spl$x)])
-          ys2 = c(y.tangent2[1], y.tangent2[length(y.tangent2)])
-          # Fit a linear equation that predicts ys using xs
-          tangent2 <- lm(ys2 ~ xs2)
-          b.t2 <- as.numeric(tangent2$coefficients[1])
-          a.t2 <- as.numeric(tangent2$coefficients[2])
+          # Tangent 1 equation
+          a.t1 <- (smooth.loess$fitted[1] - smooth.loess$fitted[3]) / (smooth.loess$x[1] - smooth.loess$x[3])
+          b.t1 <- smooth.loess$fitted[2] - a.t1 * smooth.loess$x[2]
+          # Tangent 2 equation
+          ind.t2 <- length(smooth.loess$x)
+          a.t2 <- (smooth.loess$fitted[ind.t2] - smooth.loess$fitted[ind.t2 - 2]) / (smooth.loess$x[ind.t2] - smooth.loess$x[ind.t2 - 2])
+          b.t2 <- smooth.loess$fitted[ind.t2 - 1] - a.t2 * smooth.loess$x[ind.t2 - 1]
           # Abscissa and ordinate of intersection point
           x.inter <- (b.t2 - b.t1) / (a.t1 - a.t2)
           y.inter <- a.t1 * x.inter + b.t1
-
+          
           # Middle of tangents
           # Tangent 1
+          x.tangent1 <- smooth.loess$x[2]
           x.middle1 <- ( x.inter + x.tangent1 ) / 2
           y.middle1 <- ( y.inter + (a.t1 * x.tangent1 + b.t1) ) / 2
           # Tangent 2
+          x.tangent2 <- smooth.loess$x[ind.t2 - 1]
           x.middle2 <- ( x.inter + x.tangent2 ) / 2
           y.middle2 <- ( y.inter + (a.t2 * x.tangent2 + b.t2) ) / 2
-
+          
           # Middle of line binding the middle of each tangent
           x.middle <- ( x.middle1 + x.middle2 ) / 2
           y.middle <- ( y.middle1 + y.middle2 ) / 2
@@ -3907,29 +3943,36 @@ server <- function(input, output, session) {
           b.final <- y.middle - a.final * x.middle
           
           # Find intersection between the last line and the curve
-          ind.x.interval1 <- which(spl$x > x.inter)
-          x.interval.few.points <- spl$x[ind.x.interval1]
           # Increase the precision of detection thanks to the using of more points
-          x.interval <- seq(x.interval.few.points[1], x.interval.few.points[length(x.interval.few.points)], 10**-3)
-          dist <- dist.euclid(x.interval, x.interval, (a.final * x.interval + b.final), predict(spl, x.interval)$y)
+          x.interval <- seq(x[length(x)], x[1], 0.001)
+          y.interval <- predict(smooth.loess, x.interval)
+          dist <- dist.euclid(x.interval, x.interval, (a.final * x.interval + b.final), y.interval)
           ind.pval <- which.min(dist)
           pval <- x.interval[ind.pval]
           pv1 <- 10**-pval
-
+          
+          # Return results
+          y.tangent1 <- a.t1 * x.interval + b.t1
+          y.tangent2 <- a.t2 * x.interval + b.t2
+          
+          predictions1 <- list(smooth.loess$x[2], smooth.loess$fitted[2])
+          predictions2 <- list(smooth.loess$x[ind.t2 - 1], smooth.loess$fitted[ind.t2 - 1])
+          
           pdf("Differential/Pvalue/Bezier-curve_pvalue-detection.pdf")
-
+          
           # The curve representing the number as a function of the p-value
           plot(x, y, main = "Automatic detection of p-value : Bezier curve", xlab = "-log10(p-value)", ylab = "Percentage of different regions")
           # Smoothing of the curve
-          lines(spl, col = "blue3", lwd = 3)
+          # lines(spl, col = "blue3", lwd = 3)
+          lines(smooth.loess$fitted ~ smooth.loess$x, col = "blue3", lwd = 3)
           # Point from which the tangent 1 is constructed
-          points(predictions1[[1]], col = 2, pch = 19)
+          points(predictions1[1], predictions1[2], col = 2, pch = 19)
           # Line of tangent 1
-          lines(x, y.tangent1, col = 3)
+          lines(x.interval, y.tangent1, col = 3)
           # Point from which the tangent 2 is constructed
-          points(predictions2[[1]], col = 2, pch = 19)
+          points(predictions2[1], predictions2[2], col = 2, pch = 19)
           # Line of tangent 2
-          lines(x, y.tangent2, col = 3)
+          lines(x.interval, y.tangent2, col = 3)
           # Point of intersection between the two tangents
           points(x.inter, y.inter, col = 2, pch = 19)
           # Point in the middle of the tangent 1
@@ -3944,11 +3987,11 @@ server <- function(input, output, session) {
           lines(x, (a.final * x + b.final), col = 3)
           # p-value point
           abline(v = pval, col = "red")
-          points(pval, predict(spl, pval)$y, col = "red", pch = 19)
-
+          # points(pval, predict(spl, pval)$y, col = "red", pch = 19)
+          points(pval, predict(smooth.loess, pval), col = "red", pch = 19)
+          
           dev.off()
         }
-      
       }
 
       # Initialise the variables to perform the analysis with the chosen p-value
