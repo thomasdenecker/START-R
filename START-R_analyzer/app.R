@@ -25,6 +25,7 @@ library(htmltools)
 library(clusterSim)
 library(car)
 library(tools)
+library(stringr)
 
 # Plot Normalisation
 plot_test = read.table("test_data.txt", header = F, sep = "\t")
@@ -92,12 +93,56 @@ ui <- tagList( useShinyjs(),
                                    HTML("<div class='CG'>"),
                                    h1("Initialisation", class ="center"),
                                    fluidRow(
-                                     column(6,
+                                     #column(6,
+                                            #h3("Organism", class = "center"),
+                                            #HTML("<div class='center'>"),
+                                            #radioButtons("organism", label = NA,
+                                                         #choices = list("Human (hg18)" = "Human", "No centromere" = "noCentromere", "Others (Human > hg19 or other species)" = "Other"),
+                                                         #selected = "Human", inline = T),
+                                            #div(id="fileOtherCentro", 
+                                                #p("You can enter your own centromere position file. It
+                                                                           #must be composed of 3 columns. The first must contain
+                                                                           #the names of the chromosomes. They must be strictly
+                                                                           #identical to those in your data files or they will be
+                                                                           #ignored (START-R will consider that there is no centromere).
+                                                                           #The second column corresponds to the beginning position of
+                                                                           #the centromere and the third column to the end position."),
+                                                #tags$br(),
+                                                #fileInput("inputFileOtherCentro", label = NA)),
+                                            #HTML("</div>"),
+                                            #uiOutput("orga_img")
+                                            
+                                     #),
+                                     #column(6,
+                                            #h3("Differential", class = "center"),
+                                            #p("Detect differences between 2 experiments", class = "center"),
+                                            #HTML("<div class='center'>"),
+                                            #radioButtons("dif", label = NA,
+                                                         #choices = list("Yes" = "Yes", "No" = "No"),
+                                                         #selected = "No", inline = T),
+                                            #HTML("</div>"),
+                                            #img(src= "differential.png", alt = 'dif', class = "dif")
+                                            
+                                     #)
+                                     column(4,
+                                            h3("Analysis", class = "center"),
+                                            HTML("<div class='center'>"),
+                                            radioButtons("analysis", label = NA,
+                                                         choices = list("Microarray" = "microarray", "Repli-seq" = "repliseq"),
+                                                         selected = "microarray", inline = T),
+                                            div(id="SelectFiltering", 
+                                                p("For Repli-seq analysis, you have to provide files with raw counts. The rpkm normalization will be performed by START-R"),
+                                                radioButtons("filtering", label = NA,
+                                                             choices = list("Remove lines containing 0" = "remove0", "Add a value to each line (+ 1)" = "noise"),
+                                                             selected = "noise", inline = T),
+                                                tags$br()),
+                                            HTML("</div>")
+                                     ),
+                                     column(4,
                                             h3("Organism", class = "center"),
                                             HTML("<div class='center'>"),
-                                            radioButtons("organism", label = NA,
-                                                         choices = list("Human (hg18)" = "Human", "No centromere" = "noCentromere", "Others (Human > hg19 or other species)" = "Other"),
-                                                         selected = "Human", inline = T),
+                                            selectInput(inputId = "organism", label = "Genomes", 
+                                                        choices = c("Human (hg18)" = "Human", "Human (hg19)" = "hg19", "Human (hg38)" = "hg38", "No centromere" = "noCentromere", "Others (own centromere position file or other species)" = "Other")),
                                             div(id="fileOtherCentro", 
                                                 p("You can enter your own centromere position file. It
                                                                            must be composed of 3 columns. The first must contain
@@ -112,7 +157,7 @@ ui <- tagList( useShinyjs(),
                                             uiOutput("orga_img")
                                             
                                      ),
-                                     column(6,
+                                     column(4,
                                             h3("Differential", class = "center"),
                                             p("Detect differences between 2 experiments", class = "center"),
                                             HTML("<div class='center'>"),
@@ -547,6 +592,15 @@ ui <- tagList( useShinyjs(),
                                             
                                             
                                             column(3,
+                                                  # Choose a p-value or an automatic detection
+                                                   selectInput("select_method_pvalue", label = "Select a method for p-value",
+                                                               choices = list("Automatic detection of p-value" = "Automatic pvalue",
+                                                                              "Choose a p-value" = "Manual pvalue"),
+                                                               selected = "Manual pvalue"),
+                                                   selectInput("select_method_automatic", label = "Method for automatic detection",
+                                                               choices = list("Euclidean distance" = "Euclidean distance",
+                                                                               "Bezier curve" = "Bezier curve"),
+                                                               selected = "Manual pvalue"),
                                                    tags$b("P-value threshold :", id = "PVT1"),
                                                    numericInput("num_PVT", label = NA, value = 0.05,
                                                                 min = 0, max = 1),
@@ -952,6 +1006,14 @@ server <- function(input, output, session) {
     img(src = paste0(input$organism, ".svg"), height = 100, class = "center")
   })
   
+  observeEvent(input$analysis, {
+    if(input$analysis == "repliseq"){
+      showElement(id = "SelectFiltering")
+    } else {
+      hideElement(id = "SelectFiltering")
+    }
+  })
+
   observeEvent(input$organism, {
     if(input$organism == "Other"){
       showElement(id = "fileOtherCentro")
@@ -1271,6 +1333,9 @@ server <- function(input, output, session) {
   
   observeEvent(input$select_method_differential, {
     if(input$select_method_differential == "Euclidean method"){
+      hideElement(id = "select_method_pvalue")
+      hideElement(id = "select_method_automatic")
+
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1293,28 +1358,64 @@ server <- function(input, output, session) {
       showElement(id = "num_NP")
       
     }else if(input$select_method_differential == "Mean method"){
-      showElement(id = "PVT1")
-      showElement(id = "num_PVT")
       
-      showElement(id = "APV1")
-      showElement(id = "APV3")
-      showElement(id = "select_method_ad_PV")
-      showElement(id = "ad_PV_description")
+      showElement(id = "select_method_pvalue")
       
-      showElement(id = "WS1")
-      showElement(id = "WS2")
-      showElement(id = "num_WS")
-      
-      showElement(id = "Over1")
-      showElement(id = "Over2")
-      showElement(id = "num_Over")
-      
-      hideElement(id = "NP1")
-      hideElement(id = "NP2")
-      hideElement(id = "ET_CB")
-      hideElement(id = "num_NP")
+      observeEvent(input$select_method_pvalue, {
+        if(input$select_method_pvalue == "Automatic pvalue"){
+          showElement(id = "select_method_automatic")
+
+          hideElement(id = "PVT1")
+          hideElement(id = "num_PVT")
+          
+          showElement(id = "APV1")
+          showElement(id = "APV3")
+          showElement(id = "select_method_ad_PV")
+          showElement(id = "ad_PV_description")
+          
+          showElement(id = "WS1")
+          showElement(id = "WS2")
+          showElement(id = "num_WS")
+          
+          showElement(id = "Over1")
+          showElement(id = "Over2")
+          showElement(id = "num_Over")
+          
+          hideElement(id = "NP1")
+          hideElement(id = "NP2")
+          hideElement(id = "ET_CB")
+          hideElement(id = "num_NP")
+        }
+        else if (input$select_method_pvalue == "Manual pvalue"){
+          hideElement(id = "select_method_automatic")
+
+          showElement(id = "PVT1")
+          showElement(id = "num_PVT")
+          
+          showElement(id = "APV1")
+          showElement(id = "APV3")
+          showElement(id = "select_method_ad_PV")
+          showElement(id = "ad_PV_description")
+          
+          showElement(id = "WS1")
+          showElement(id = "WS2")
+          showElement(id = "num_WS")
+          
+          showElement(id = "Over1")
+          showElement(id = "Over2")
+          showElement(id = "num_Over")
+          
+          hideElement(id = "NP1")
+          hideElement(id = "NP2")
+          hideElement(id = "ET_CB")
+          hideElement(id = "num_NP")
+        }
+      })
       
     }else if (input$select_method_differential == "Segment method"){
+      hideElement(id = "select_method_pvalue")
+      hideElement(id = "select_method_automatic")
+
       hideElement(id = "PVT1")
       hideElement(id = "num_PVT")
       
@@ -1539,8 +1640,14 @@ server <- function(input, output, session) {
   })
   
   output$Out_differential_PVT <- renderText({
-    if(input$select_method_differential == "Mean method"){
+    # Indicate the p-value in the summary
+    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
       paste("PVT :", input$num_PVT)
+    }
+    # Otherwise indicate that the p-value is detected automatically
+    else if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
+        paste("PVT :", "Automatic detection of p-value")
+        paste("Method of automatic detection :", input$select_method_automatic)
     }
   })
   
@@ -1583,6 +1690,162 @@ server <- function(input, output, session) {
   
   click = FALSE
   observeEvent(input$Run , {
+
+    ################################################################################
+    # Functions : File Treatment
+    ################################################################################
+    
+    remove.zero <- function(file.to.treat){
+      nonzero.value.index.g <- rownames(file.to.treat[file.to.treat["gProcessedSignal"] == 0, ])
+      nonzero.value.index.r <- rownames(file.to.treat[file.to.treat["rProcessedSignal"] == 0, ])
+      #Recover all lines with 0 in " gProcessedSignal " column and / or " gProcessedSignal " column
+      union.index <- unique(sort(c(as.numeric(nonzero.value.index.g), as.numeric(nonzero.value.index.r))))
+      return(union.index)
+    }
+
+    remove.min.two.columns <- function(file.to.treat){
+      min.gProcessedSignal <- min(file.to.treat$gProcessedSignal)
+      min.rProcessedSignal <- min(file.to.treat$rProcessedSignal)
+      min.value.index.g <- rownames(file.to.treat[file.to.treat["gProcessedSignal"] == min.gProcessedSignal, ])
+      min.value.index.r <- rownames(file.to.treat[file.to.treat["rProcessedSignal"] == min.rProcessedSignal, ])
+      # Recover all lines with min value in " gProcessedSignal " column and " gProcessedSignal " column
+      intersect.min.index <- intersect(min.value.index.g, min.value.index.r)
+      return(intersect.min.index)
+    }
+    
+    # Remove "chrY"
+    remove.chry <- function(file.to.treat){
+      # Positions of lines with "chrY"
+      pos.chry <- c()
+      for (i in 1:(dim(file.to.treat)[1])){
+        pos <- file.to.treat[i, "SystematicName"]
+        # Recover only chr name
+        pos.split <- strsplit(as.character(pos), ":")
+        type.chr <- unlist(pos.split)[1]
+        if (!is.na(type.chr) && type.chr == "chrY"){
+          pos.chry <- c(pos.chry, i)
+        }
+        else{
+          pos.chry <- pos.chry
+        }
+      }
+      return(pos.chry)
+    }
+    
+    # Treatment to avoid errors when methods are used in the app
+    treatment.repliseq <- function(name, input.skip, index){
+      # Read input file
+      file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
+
+      # Determine bin size
+      pos.with.chr <- str_split(file[1, "SystematicName"], ":")
+      start.end <- str_split(pos.with.chr[[1]][2], "-")
+      bs <- as.numeric(start.end[[1]][2]) - as.numeric(start.end[[1]][1])
+
+      # Add noise to avoid 0 = add 1 to each value
+      if (input$filtering == "noise"){
+        file[, "gProcessedSignal"] <- file[, "gProcessedSignal"] + 1
+        file[, "rProcessedSignal"] <- file[, "rProcessedSignal"] + 1
+      }
+      # Calculate RPKM values
+      sum.S1 <- sum(file$gProcessedSignal)
+      sum.S2 <- sum(file$rProcessedSignal)
+      file$gProcessedSignal <- file$gProcessedSignal / (sum.S1 * 10**-6 * bs * 10**-3)
+      file$rProcessedSignal <- file$rProcessedSignal / (sum.S2 * 10**-6 * bs * 10**-3)
+
+      # Remove lines with min values
+      file.without.min <- file[-index, ]
+
+      # Remove "chrY"
+      pos.chry <- remove.chry(file = file.without.min)
+      if (!is.null(pos.chry)){
+        treated.file <- file.without.min[-pos.chry,]
+        write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+      }
+      else{
+        write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+      }
+    }
+
+    # Treatment to avoid a noise (log2(ratio) = 0) when microarray files are used
+    treatment.microarray <- function(name, input.skip, index){
+      # Read input file
+      file <- read.table(name, sep = "\t", header = TRUE, skip = input.skip)
+      treated.file <- file[-index, ]
+      write.table(treated.file, name, sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+    }
+
+    # Rounding numbers using the digits behind the decimal point
+    round.number <- function(num){
+      list.num <- str_split(num, "\\.")
+      arr <- list.num[[1]][2]
+      if (as.numeric(str_split(arr, "")[[1]][1]) >= 5 && !is.na(arr)){
+        num.new <- as.numeric(list.num[[1]][1]) + 1
+      }
+      if (as.numeric(str_split(arr, "")[[1]][1]) < 5 && !is.na(arr)){
+        num.new <- as.numeric(list.num[[1]][1])
+      }
+      if (is.na(arr)){
+        num.new <- as.numeric(list.num[[1]])
+      }
+      num.new
+      return(num.new)
+    }
+    
+    # Rounding positions of dataframe columns
+    round.positions <- function(x){
+      pos.start <- x[2]
+      pos.end <- x[3]
+      new.pos.start <- round.number(pos.start)
+      new.pos.end <- round.number(pos.end)
+      x[2] <- new.pos.start
+      x[3] <- new.pos.end
+      return(x)
+    }
+
+    # Prediction of tangent from a point
+    # tangent <- function(x.tangent, smooth){
+    #   pred.deriv0 <- predict(smooth, x = x.tangent, deriv = 0)
+    #   # Predict ordinate for first derivative
+    #   pred.deriv1 <- predict(smooth, x = x.tangent, deriv = 1)
+    #   yint <- pred.deriv0$y - (pred.deriv1$y * x.tangent)
+    #   xint <- - yint / pred.deriv1$y
+    #   return(list(pred.deriv0, pred.deriv1, xint, yint))
+    # }
+    # 
+    # # Calculate euclidean distance between two points
+    # dist.euclid <- function(x1, x2, y1, y2){
+    #   dist <- sqrt((x1 - x2)**2 + (y1 - y2)**2)
+    #   return(dist)
+    # }
+    
+    # PValuator functions
+    
+    # Remove a part of the data (to avoid obtaining a plateau that is too long for small p-values)
+    remove.small.var <- function(df, value){
+      # Remove values of the distribution when they are too close
+      variance <- c()
+      for (i in 1:(dim(df)[1] - 1)){
+        variance <- c(variance, var(df$Percentage[1:(i+1)]))
+      }
+      # Keep positions of variances
+      ind.var <- which(variance > (variance[length(variance)] * value))
+      # Keep lines of interest : -1 to recover the previous value and +1 to recover the last value used to calculate the variance
+      df <- df[(ind.var[1] - 1):(ind.var[length(ind.var)] + 1), ]
+      return(df)
+    }
+    
+    # Calculate euclidean distance between two points
+    dist.euclid <- function(x1, x2, y1, y2){
+      dist <- sqrt((x1 - x2)**2 + (y1 - y2)**2)
+      return(dist)
+    }
+    
+    ################################################################################
+    
+    # Load centromere positions for hg38 genome (table extracted from "rCGH" package : data derived from the Hg38 gap UCSC table)
+    hg38 <- read.table("./Inputs/centromere_positions_hg38.txt", header = TRUE, sep = "\t")
+
     # Before
     hideElement(id = "Run")
     hideElement(id = "H1_Run")
@@ -1628,6 +1891,91 @@ server <- function(input, output, session) {
                  File3 = File3,
                  File4 = File4)
     
+
+    ################################################################################
+    # determine the lines to be deleted according to the method to be used
+    ################################################################################
+    
+    differential.analysis = input$CH_Differential
+    union.index <- c()
+    if (differential.analysis == TRUE && input$analysis == "repliseq"){
+          
+          # Read all input files
+          file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
+          file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
+          file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
+          file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
+
+          nbr.total <- dim(file1.before.treatment)[1]
+
+          if (input$filtering == "remove0"){
+            union.index1 <- remove.zero(file = file1.before.treatment)
+            union.index2 <- remove.zero(file = file2.before.treatment)
+            union.index3 <- remove.zero(file = file3.before.treatment)
+            union.index4 <- remove.zero(file = file4.before.treatment)
+            
+            union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
+            union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
+          }
+
+          if (input$filtering == "noise"){
+            inter.index1 <- remove.min.two.columns(file = file1.before.treatment)
+            inter.index2 <- remove.min.two.columns(file = file2.before.treatment)
+            inter.index3 <- remove.min.two.columns(file = file3.before.treatment)
+            inter.index4 <- remove.min.two.columns(file = file4.before.treatment)
+            
+            union.index1.2 <- unique(sort(c(as.numeric(inter.index1), as.numeric(inter.index2))))
+            union.index3.4 <- unique(sort(c(as.numeric(inter.index3), as.numeric(inter.index4))))
+          }
+          
+          # Recover indices from all files in order to remove same lines (= same chromosome and positions)
+          union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+
+    } 
+     else if (input$analysis == "microarray"){
+
+      nbr.lines <- input$skip_E1_R1
+      file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = nbr.lines)
+      file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = nbr.lines)
+      
+      lines.pos <- str_split(file1.before.treatment$SystematicName, ":")
+      ind.chry <- c()
+      for (i in 1:length(lines.pos)){
+        if (lines.pos[[i]][1] == "chrY"){
+          ind.chry <- c(ind.chry, i)
+        }
+      }
+      
+      ind.logratio.cond1 <- which(file1.before.treatment$LogRatio == 0)
+      ind.logratio.cond2 <- which(file2.before.treatment$LogRatio == 0)
+      union.index1.2 <- unique(sort(c(as.numeric(ind.logratio.cond1), as.numeric(ind.logratio.cond2))))
+      
+      nbr.total <- dim(file1.before.treatment)[1]
+      nbr.remove <- length(union.index1.2)
+      percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
+
+      if (differential.analysis == TRUE){
+        file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = nbr.lines)
+        file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = nbr.lines)
+        
+        ind.logratio.cond3 <- which(file3.before.treatment$LogRatio == 0)
+        ind.logratio.cond4 <- which(file4.before.treatment$LogRatio == 0)
+        
+        union.index3.4 <- unique(sort(c(as.numeric(ind.logratio.cond3), as.numeric(ind.logratio.cond4))))
+        union.index.logratio <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+        union.index.all <- unique(sort(c(as.numeric(union.index.logratio), as.numeric(ind.chry))))
+      }
+      else{
+        union.index.all <- unique(sort(c(as.numeric(union.index1.2), as.numeric(ind.chry))))
+      }
+
+      nbr.remove <- length(union.index.all)
+      percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
+
+    }
+    ################################################################################
+
+
     sortie_image = input$graphical_outputs
     bed = input$file_outputs
     nor1 = input$RBintra_array
@@ -1702,44 +2050,44 @@ server <- function(input, output, session) {
     # Creating a codebook
     #///////////////////////////////////////////////////////////////////////////
     
-    codebook = NULL
-    codebook = rbind(codebook, c("File 1 : ",File1name))
-    codebook = rbind(codebook, c("File 2 : ",File2name))
-    codebook = rbind(codebook, c("File 3 : ",File3name))
-    codebook = rbind(codebook, c("File 4 : ",File4name))
-    codebook = rbind(codebook, c("Organism : ",organisme))
-    codebook = rbind(codebook, c("Sortie image : ",sortie_image))
-    codebook = rbind(codebook, c("Bed : ",bed))
-    codebook = rbind(codebook, c("Intra array : ",nor1))
-    codebook = rbind(codebook, c("Inter replica : ",nor2))
-    codebook = rbind(codebook, c("Inter experiment : ",nor3))
-    codebook = rbind(codebook, c("Smooth : ",e1))
-    codebook = rbind(codebook, c("TTR : ",e2))
-    codebook = rbind(codebook, c("Segmentation : ",e3))
-    codebook = rbind(codebook, c("All : ",e4))
+    # codebook = NULL
+    # codebook = rbind(codebook, c("File 1 : ",File1name))
+    # codebook = rbind(codebook, c("File 2 : ",File2name))
+    # codebook = rbind(codebook, c("File 3 : ",File3name))
+    # codebook = rbind(codebook, c("File 4 : ",File4name))
+    # codebook = rbind(codebook, c("Organism : ",organisme))
+    # codebook = rbind(codebook, c("Sortie image : ",sortie_image))
+    # codebook = rbind(codebook, c("Bed : ",bed))
+    # codebook = rbind(codebook, c("Intra array : ",nor1))
+    # codebook = rbind(codebook, c("Inter replica : ",nor2))
+    # codebook = rbind(codebook, c("Inter experiment : ",nor3))
+    # codebook = rbind(codebook, c("Smooth : ",e1))
+    # codebook = rbind(codebook, c("TTR : ",e2))
+    # codebook = rbind(codebook, c("Segmentation : ",e3))
+    # codebook = rbind(codebook, c("All : ",e4))
     
-    codebook = rbind(codebook, c("Differential analysis : ",e5))
+    # codebook = rbind(codebook, c("Differential analysis : ",e5))
     
-    codebook = rbind(codebook, c("Span : ",v1))
-    codebook = rbind(codebook, c("Number of SD : ",v2))
-    codebook = rbind(codebook, c("padjust : ",v3))
-    codebook = rbind(codebook, c("Smooth method : ",v4))
-    codebook = rbind(codebook, c("Size : ",v5))
-    codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
-    codebook = rbind(codebook, c("Column name of green signal : ",fs2))
-    codebook = rbind(codebook, c("Column name of red signal : ",fs3))
-    codebook = rbind(codebook, c("Early fraction : ",fs4))
-    codebook = rbind(codebook, c("Late fraction : ",fs5))
-    
-    if(e5){
-      codebook = rbind(codebook, c("Difference type : ",type_dif))
-      if(input$select_method_differential == "Mean method"){
-        codebook = rbind(codebook, c("P-value threshold : ",pv1))
-        codebook = rbind(codebook, c("Window size : ",pv2))
-        codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
-        codebook = rbind(codebook, c("Overlap : ",pv4))
-      }
-    }
+    # codebook = rbind(codebook, c("Span : ",v1))
+    # codebook = rbind(codebook, c("Number of SD : ",v2))
+    # codebook = rbind(codebook, c("padjust : ",v3))
+    # codebook = rbind(codebook, c("Smooth method : ",v4))
+    # codebook = rbind(codebook, c("Size : ",v5))
+    # codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
+    # codebook = rbind(codebook, c("Column name of green signal : ",fs2))
+    # codebook = rbind(codebook, c("Column name of red signal : ",fs3))
+    # codebook = rbind(codebook, c("Early fraction : ",fs4))
+    # codebook = rbind(codebook, c("Late fraction : ",fs5))
+
+    # if(e5){
+      # codebook = rbind(codebook, c("Difference type : ",type_dif))
+      # if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
+        # codebook = rbind(codebook, c("P-value threshold : ",pv1))
+        # codebook = rbind(codebook, c("Window size : ",pv2))
+        # codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
+        # codebook = rbind(codebook, c("Overlap : ",pv4))
+      # }
+    # }
     
     
     #///////////////////////////////////////////////////////////////////////////
@@ -1794,9 +2142,25 @@ server <- function(input, output, session) {
       if(increment == 1){
         file.rename(paste0("0.", extension), "E1_R1.txt")
         nom = "E1_R1.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE  && input$analysis == "repliseq" && length(union.index) > 0){
+          treatment.repliseq(name = nom, input.skip = fs1, index = union.index) 
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
+        }
       } else{
         file.rename(paste0("0.", extension), "E2_R1.txt")
         nom = "E2_R1.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
+          treatment.repliseq(name = nom, input.skip = fs1, index = union.index)
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom, input.skip = nbr.lines, index = union.index.all)
+        }
       }
       
       nom2 = nomtotal[increment+1]
@@ -1805,7 +2169,30 @@ server <- function(input, output, session) {
       if(increment == 1){
         file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
+          treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
+        }
       } else{
+        file.exp2.replicat2 <- read.table("0.txt", sep = "\t", header = TRUE, skip = input$skip_E1_R1)
+        nom2 = "0.txt"
+        # File treatment to avoid errors during differential analysis
+        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
+          treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
+        }
+        # File treatment to avoid noise (log2(ratio) = 0)
+        else if (input$analysis == "microarray" && length(union.index.all) > 0){
+          treatment.microarray(name = nom2, input.skip = nbr.lines, index = union.index.all)
+        }
+      }
+      
+      # Change the number of lines to skip in order to read treated input files
+      if (input$analysis == "microarray" && length(union.index.all) > 0){
+        fs1 = 0
       }
       
       increment = 3
@@ -1878,6 +2265,12 @@ server <- function(input, output, session) {
       mLymph2_Cy5_Cy3 <- read.table(filename2,header=T,  comment.char = "",
                                     colClasses=classes, skip = fs1, sep = fsSep)
       
+      # Count the percentage of removed lines for repli-seq analysis
+      if (differential.analysis == TRUE && input$analysis == "repliseq"){
+        nbr.remove <- dim(file1.before.treatment)[1] - dim(mLymph1_Cy5_Cy3)[1]
+        percentage.remove <- (nbr.remove / dim(file1.before.treatment)[1]) * 100
+      }
+
       #-------------------------------------------------------------------------
       # Intensity extraction
       #-------------------------------------------------------------------------
@@ -2205,7 +2598,9 @@ server <- function(input, output, session) {
         RT = na.omit(RT)
         RTS = as.data.frame(RT)
         RTL = as.data.frame(RT$CHR)
-        chrs = levels(RTL[,1])
+        # chrs = levels(RTL[,1])
+        # Add factor to avoid empty list
+        chrs = levels(factor(RTL[,1]))
         motelim = c("chr11_gl000202_random", "chr17_gl000204_random",
                     "chr17_gl000205_random","chr19_gl000209_random",
                     "chr1_gl000192_random", "chr4_gl000193_random",
@@ -2230,7 +2625,8 @@ server <- function(input, output, session) {
             tableauCentro = matrix(0, length(chrs2), 2)
             colnames(tableauCentro) = c("debut", "fin")
             rownames(tableauCentro) = chrs2
-          } else {
+          } 
+          else {
             tableauCentro = matrix(0, length(chrs2), 2)
             colnames(tableauCentro) = c("debut", "fin")
             rownames(tableauCentro) = chrs2
@@ -2247,7 +2643,15 @@ server <- function(input, output, session) {
           cat("Current chromosome Lissage: ", chr,"\n")
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
@@ -2266,7 +2670,8 @@ server <- function(input, output, session) {
               ligne = which(RTb$POSITION > centro[j])
             }
             RTb = RTb[ligne, ]
-            if( dim(RTb)[1] != 0){
+            # if( dim(RTb)[1] != 0){
+            if( dim(RTb)[1] > 1){
               RTl = NULL
               if (v4 != "Loess"){
                 p_mov = v5
@@ -2397,7 +2802,15 @@ server <- function(input, output, session) {
           
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
@@ -2424,7 +2837,8 @@ server <- function(input, output, session) {
             }else{
               RTb = RTb[which(RTb$POSITION > centro[j]),]
             }
-            if( dim(RTb)[1] != 0){
+            # if( dim(RTb)[1] != 0){
+            if( dim(RTb)[1] > 1){
               lspan = v1/(max(RTb$POSITION)-min(RTb$POSITION))
               fit = loess(RTb$mLymphAve ~ RTb$POSITION, span = lspan)
               px <- predict(fit, newdata=RTb$POSITION)
@@ -2986,15 +3400,607 @@ server <- function(input, output, session) {
     
     
     if (e5 == TRUE){
+
       dir.create("Differential")
       dir.create("Differential/Viewer")
-      
+
+      if (input$select_method_pvalue == "Automatic pvalue"){
+        
+        dir.create("Differential/Pvalue")
+
+        ALL_dif = NULL
+        tab_pourcentage = NULL
+        max_tot = 0
+        sum_tot = 0
+        tab_coord_dif = NULL
+        
+        # Test mean method with these p-values
+        list.pvalues <- sort(c(seq(1e-1, 1, 0.05), seq(1e-2, 0.095, 0.005), seq(1e-3, 0.0095, 0.0005), 
+                               1e-4, 1e-5, 1e-6, 1e-7, 1e-8, 1e-9, 1e-10, 
+                               1e-11, 1e-12, 1e-13, 1e-14, 1e-15, 1e-16, 1e-17, 1e-18, 1e-19, 1e-20, 
+                               1e-21, 1e-22, 1e-23, 1e-24, 1e-25, 1e-26, 1e-27, 1e-28, 1e-29, 1e-30))
+        pvalues <- c()
+        nbr.diff.regions <- c()
+        per <- c()
+        
+        for (pv1 in list.pvalues){
+          
+          ALL_dif = NULL
+          tab_pourcentage = NULL
+          max_tot = 0
+          sum_tot = 0
+          tab_coord_dif = NULL
+          
+          for (chr in chrs2){
+            cat(paste("dif :", chr), file = stderr())
+            top = 0
+            flag = 0
+            etat = 0
+            #=======================================================================
+            # Read data
+            #=======================================================================
+            
+            All_data1 = read.table(paste("Experience_1/Chromosomes/", chr,".txt",
+                                         sep = ""), header = T)
+            Loess_data1 = read.table(paste("Experience_1/Chromosomes/Loess_", chr,".txt",
+                                           sep = ""), header = T)
+            Seg_data1 = read.table(paste("Experience_1/Chromosomes/Segmentation_",
+                                         chr,".bed", sep = ""), header = T)
+            TTR1 = read.table(paste("Experience_1/Chromosomes/TTR_", chr,".bed",
+                                    sep = ""), header = F)
+            
+            All_data2 = read.table(paste("Experience_2/Chromosomes/", chr,".txt",
+                                         sep = ""), header = T)
+            Loess_data2 = read.table(paste("Experience_2/Chromosomes/Loess_",
+                                           chr,".txt", sep = ""), header = T)
+            Seg_data2 = read.table(paste("Experience_2/Chromosomes/Segmentation_",
+                                         chr,".bed", sep = ""), header = T)
+            TTR2 = read.table(paste("Experience_2/Chromosomes/TTR_", chr,".bed",
+                                    sep = ""), header = F)
+            
+            lspan = v1/(max(All_data1$POSITION)-min(All_data1$POSITION))
+            
+            RTb = cbind(All_data1$CHR, All_data1$POSITION, All_data1$mLymphAve,
+                        All_data2$mLymphAve)
+            RTb = as.data.frame(RTb)
+            colnames(RTb)  = c("CHR","POSITION", "E1", "E2")
+            
+            if (type_dif == "Mean method"){
+              taille_fenetre = pv2
+              overlap = pv4
+              p_value = pv1
+              log_p = 1 - log(p_value)
+              
+              tab_pval = matrix(0,dim(RTb)[1]/(taille_fenetre-overlap)-2,8)
+              colnames(tab_pval) = c("POSITION","pval", "log", "col", "m1", "m2",
+                                     "col2", "dif")
+              posp = seq(1,dim(RTb)[1], taille_fenetre-overlap)
+              
+              for (i in 1:floor(dim(RTb)[1]/(taille_fenetre-overlap)-2) ){
+                tab_pval[i,1] = as.numeric(as.character( RTb[posp[i], 2])) #+ floor(taille_fenetre/2)
+                a = as.numeric(as.character(RTb[posp[i]:(posp[i]+taille_fenetre-1),3]))
+                b = as.numeric(as.character(RTb[posp[i]:(posp[i]+taille_fenetre-1),4]))
+                
+                if(anyNA(a) == TRUE || anyNA(b) == TRUE  ){
+                  tab_pval[i,2] = 0
+                  tab_pval[i,3] = 0
+                  tab_pval[i,5] = 0
+                  tab_pval[i,6] = 0
+                }else {
+                  tab_pval[i,2] = t.test(a,b)$p.value
+                  tab_pval[i,3] = 1 - log10(as.numeric(as.character(tab_pval[i,2])))
+                  tab_pval[i,5] = mean(a)
+                  tab_pval[i,6] = mean(b)
+                }
+              }
+              tab_pval[, 2] =  p.adjust(as.numeric(as.character(tab_pval[,2])), method = pv3)
+              
+              for (i in 1:floor(dim(RTb)[1]/(taille_fenetre-overlap)-2) ){
+                if (as.numeric(as.character(tab_pval[i,3])) < log_p){
+                  tab_pval[i,4] = "forestgreen"
+                }else if (as.numeric(as.character(tab_pval[i,3])) > log_p){
+                  tab_pval[i,4] = "red"
+                }
+                
+                tab_pval[i,8]= as.numeric(as.character(tab_pval[i,5]))-as.numeric(as.character(tab_pval[i,6]))
+                
+                if (is.na(as.numeric(as.character(tab_pval[i,5])) ) || is.na(as.numeric(as.character(tab_pval[i,5])) )){
+                  tab_pval[i,7] = "white"
+                  tab_pval[i,8] = 0
+                }else if (as.numeric(as.character(tab_pval[i,5])) > as.numeric(as.character(tab_pval[i,6])) && as.numeric(as.character(tab_pval[i,3])) > log_p){
+                  tab_pval[i,7] = "blue"
+                }else if (as.numeric(as.character(tab_pval[i,5])) < as.numeric(as.character(tab_pval[i,6])) && as.numeric(as.character(tab_pval[i,3])) > log_p ){
+                  tab_pval[i,7] = "chocolate"
+                }
+                
+              }
+              
+              if (organisme == "Human"){
+                centro = centromere(chr,"hg18")
+              }
+              else if (organisme == "hg19"){
+                centro = centromere(chr,"hg19")
+              }
+              else if (organisme == "hg38"){
+                index.chr <- which(hg38$chrom %in% chr)
+                centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+              }
+              else if (organisme == "noCentromere" ){
+                centro = no_centro(chr)
+              }else {
+                centro = centro_Other(tableauCentro, chr)
+              }
+              
+              pos_centro = centro
+              
+              tab_centro = rbind(cbind(as.character(chr) ,pos_centro[1]),cbind(as.character(chr),pos_centro[2]))
+              tab_centro = as.data.frame(tab_centro)
+              tab_centro[,1] = as.character(tab_centro[,1])
+              
+              if (length(2: (nrow(All_data1)-1)) >=1000){
+                pos_sample = sample(2: (nrow(All_data1)-1), 1000)
+              } else {
+                pos_sample = sample(2: (nrow(All_data1)-1), length(2: (nrow(All_data1)-1)))
+              }
+              
+              
+              # Calculation of the average size between 2 positions
+              M_sample = NULL
+              for(comp_sample in pos_sample){
+                M_sample = c(M_sample, mean(c((All_data1$POSITION[comp_sample]- All_data1$POSITION[(comp_sample-1)]),(All_data1$POSITION[(comp_sample+1)] - All_data1$POSITION[(comp_sample)]))))
+              }
+              moyenne_entre_pos = mean(M_sample)
+              
+              centro_chrom = subset(tab_centro, tab_centro$V1 == chr)
+              mat_centro = matrix(0,dim( centro_chrom)[1],8)
+              colnames(mat_centro) = colnames(tab_pval)
+              
+              mat_centro[,1] = as.numeric(as.character(centro_chrom[,2]))
+              mat_centro[,2] = 1
+              mat_centro[,3] = 1 - log10(as.numeric(as.character(mat_centro[,2])))
+              mat_centro[,4] = "forestgreen"
+              mat_centro[,7] = "white"
+              
+              tab_pval = rbind(tab_pval,mat_centro)
+              tab_pval = as.data.frame(tab_pval)
+              tab_pval[,1] = as.numeric(as.character(tab_pval[,1]))
+              tab_pval = tab_pval[order(tab_pval[,1]),]
+              tab_pval = as.matrix(tab_pval)
+              
+              etat = 0
+              compt = 0
+              test = NULL
+              
+              ###
+              iteration.pos0.delayed <- 0
+              iteration.pos0.advanced <- 0
+              ###
+              
+              for (i in 2 : (dim(tab_pval)[1]-1)){
+                
+                if (tab_pval[i,4] != "forestgreen"){
+                  if (tab_pval[i,7] == "blue"){
+                    etat = etat + 2
+                    compt = compt +1
+                  }else if (tab_pval[i,7] == "chocolate"){
+                    etat = etat - 1
+                    compt = compt +1
+                  } else if (tab_pval[i,7] == "white")
+                    etat = etat
+                }
+                
+                if ( tab_pval[i,4] != "forestgreen" & i == (dim(tab_pval)[1]-1)){
+                  max = tab_pval[i,"POSITION"]
+                  top = 2
+                }
+                
+                if ( tab_pval[i-1,4] != "forestgreen" & i-1 == 1){
+                  min = tab_pval[i,"POSITION"]
+                  top = 1
+                }
+                if (tab_pval[i,4] == "forestgreen" & tab_pval[i+1,4] != "forestgreen" & tab_pval[i-1,4] != "forestgreen"){
+                  flag = 1
+                  min2 = tab_pval[i,"POSITION"]
+                  max = tab_pval[i,"POSITION"]
+                  
+                  # Recover the first value (when iteration.pos = 0)
+                  if (iteration.pos0.delayed == 0 && etat == 2 * compt){
+                    pos.0.delayed <- as.numeric(min2)
+                    iteration.pos0.delayed <- iteration.pos0.delayed + 1
+                  }
+                  
+                  if (iteration.pos0.advanced == 0 && etat == -1 * compt){
+                    pos.0.advanced <- as.numeric(min2)
+                    iteration.pos0.advanced <- iteration.pos0.advanced + 1
+                  }
+                  
+                  top = top + 1
+                  
+                }
+                
+                if( tab_pval[i,4] == "forestgreen" & tab_pval[i-1,4] == "forestgreen" & tab_pval[i+1,4] != "forestgreen" & top != 1){
+                  min = tab_pval[i,"POSITION"]
+                  top = top +1
+                  
+                }
+                if( tab_pval[i,4] == "forestgreen" & tab_pval[i+1,4] == "forestgreen" & tab_pval[i-1,4] != "forestgreen" & top == 1){
+                  max = tab_pval[i,"POSITION"]
+                  top = top + 1
+                  
+                }
+                
+                if(top == 2){
+                  if (flag == 0){
+                    if ( etat == 2 * compt){
+                      STATE = "DELAYED"
+                    } else if (etat == -1 * compt){
+                      STATE = "ADVANCED"
+                    }else{
+                      STATE = "ADVANCED & DELAYED"
+                    }
+                    tab_coord_dif = rbind(tab_coord_dif, c(CHR = chr,START = min,END = max, STATE = STATE))
+                    top = 0
+                    compt = 0
+                    etat = 0
+                    test = c(test, etat)
+                  }
+                  if (flag == 1){
+                    if ( etat == 2 * compt){
+                      STATE = "DELAYED"
+                    } else if (etat == -1 * compt){
+                      STATE = "ADVANCED"
+                    }else{
+                      STATE = "ADVANCED & DELAYED"
+                    }
+                    tab_coord_dif = rbind(tab_coord_dif, c(CHR = chr,START = min,END = max, STATE = STATE))
+                    min = min2
+                    top = 1
+                    flag = 0
+                    compt = 0
+                    etat = 0
+                    test = c(test, etat)
+                  }
+                }
+              }
+              
+              inter = tab_coord_dif[tab_coord_dif[,1]== chr,]
+              if (is.vector(inter) == TRUE)
+                inter = matrix (inter,1,3)
+              debut1 = NULL
+              debut2 = NULL
+              delayed = NULL
+              advanced = NULL
+              inter = as.data.frame(inter)
+              inter_ad = inter[inter$STATE == "ADVANCED",]
+              if (dim(inter_ad)[1] != 0){
+                debut1 = as.numeric(as.character(inter_ad[,2]))
+                fin1 = as.numeric(as.character(inter_ad[,3]))
+              }
+              
+              
+              inter_de = inter[inter$STATE == "DELAYED",]
+              if(dim(inter_de)[1] != 0){
+                debut2 = as.numeric(as.character(inter_de[,2]))
+                fin2 = as.numeric(as.character(inter_de[,3]))
+              }
+              
+              # Vector "debut1" : add the missing position if it exists (for the first value when top < 2)
+              if (!is.null(debut1) && is.na(debut1[1])){
+                debut1[1] <- pos.0.advanced
+              }
+              
+              if (!is.null(debut1[1])){
+                if(debut1[1] == 0){
+                  debut1[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
+                }
+              }
+              
+              # Vector "debut2" : add the missing position if it exists (for the first value when top < 2)
+              if (!is.null(debut2) && is.na(debut2[1])){
+                debut2[1] <- pos.0.delayed
+              }
+              
+              if (!is.null(debut2[1])){
+                if(debut2[1] == 0){
+                  debut2[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
+                }
+              }
+              
+              if(!is.null(debut1)){
+                if (organisme == "Human"){
+                  # advanced = cbind(debut1, fin1)
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                } else if (organisme == "noCentromere"){
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                  # advanced = cbind((debut1 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) ,(fin1+ Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos) )
+                  # advanced = cbind((debut1 + (fin1-debut1)/2),(fin1+ (fin1-debut1)/2))
+                } else {
+                  advanced = cbind((debut1 + overlap *  moyenne_entre_pos)  , (fin1 + overlap *  moyenne_entre_pos ))
+                }
+              }
+              if(!is.null(debut2)){
+                if (organisme == "Human"){
+                  # delayed= cbind(debut2, fin2)
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                } else if (organisme == "noCentromere"){
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                  # delayed= cbind((debut2 + Loess_data1$POSITION[1] - All_data1$POSITION[1] + overlap *  moyenne_entre_pos), (fin2+ Loess_data1$POSITION[1]- All_data1$POSITION[1] + overlap *  moyenne_entre_pos))
+                  # delayed= cbind((debut2 + (fin2-debut2)/2 ), (fin2 + (fin2-debut2)/2))
+                } else {
+                  delayed= cbind((debut2 + overlap *  moyenne_entre_pos), (fin2 + overlap *  moyenne_entre_pos))
+                }
+              }
+              
+              if(dim(delayed)[1] == 0 && !is.null(delayed))
+                delayed = rbind(delayed, c(NA,NA))
+              if(dim(advanced)[1] == 0 && !is.null(advanced))
+                advanced = rbind(delayed, c(NA,NA))
+            }
+            
+            if(is.null(advanced) == F){
+              advanced = as.data.frame(cbind(rep(chr, dim(advanced)[1]), advanced, rep("ADVANCED", dim(advanced)[1])))
+              names(advanced) = c("CHR","START", "END", "STATUS")
+            }
+            if(is.null(delayed) == F){
+              delayed = as.data.frame(cbind(rep(chr, dim(delayed)[1]), delayed, rep("DELAYED", dim(delayed)[1])))
+              names(delayed) = c("CHR","START", "END", "STATUS")
+            }
+            
+            ALL_dif = rbind(ALL_dif, advanced)
+            ALL_dif = rbind(ALL_dif, delayed)
+            
+            max = max(as.numeric(as.character(RTb$POSITION)))
+            dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),
+                    as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
+            sum = sum(dif)
+            max_tot = max_tot + max
+            sum_tot = sum_tot + sum
+
+          }
+          pourcentage_tot = sum_tot * 100 / max_tot
+          per <- c(per, pourcentage_tot)
+          print(pv1)
+          nbr <- dim(ALL_dif)[1]
+          if (is.null(dim(ALL_dif)[1])){
+            nbr <- 0
+          }
+          print(nbr)
+          nbr.diff.regions <- c(nbr.diff.regions, nbr)
+          pvalues <- c(pvalues, pv1)
+        }
+        
+        df.comparison.pvalue <- data.frame(PValue = pvalues, Nbr_region = nbr.diff.regions, Percentage = per)
+        write.table(df.comparison.pvalue, "Differential/Pvalue/table_results_per_pvalue.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+        
+        # # Remove the (n - 1) lines associated with 0 when n lines contain the value 0
+        # ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
+        # # Find the maximum value to stop the representation of the curve at this value
+        # ind.max.df <- which.max(df.comparison.pvalue$Percentage)
+        # if (length(ind.0) > 0){
+        #   df <- df.comparison.pvalue[-c(ind.0[1 : (length(ind.0) - 1)], seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1)), ]
+        # }
+        # if (length(ind.0) == 0 && ind.max.df < dim(df.comparison.pvalue)[1]){
+        #   df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
+        # }
+        # if (length(ind.0) == 0 && ind.max.df == dim(df.comparison.pvalue)[1]){
+        #   df <- df.comparison.pvalue
+        # }
+        
+        ind.0 <- which(df.comparison.pvalue$Percentage %in% 0)
+        # Check if we have replicates (if few p-values are associated to a number > 0)
+        if (length(ind.0) > 80){
+          df <- df.comparison.pvalue[-ind.0, ]
+          pv1 <- df[which.min(df.comparison.pvalue$PValue), "PValue"]
+        }
+        if (length(ind.0) < 80){
+          if (length(ind.0) > 0){
+            df <- df.comparison.pvalue[-ind.0, ]
+          }
+          # Find the maximum value to stop the representation of the curve at this value
+          ind.max.df <- which.max(df.comparison.pvalue$Percentage)
+          if (ind.max.df < dim(df.comparison.pvalue)[1]){
+            df <- df.comparison.pvalue[-seq((ind.max.df + 1), dim(df.comparison.pvalue)[1], 1), ]
+          }
+        }
+              
+        write.table(df, "Differential/Pvalue/table_results_per_pvalue_removed-values.txt", sep = "\t", col.names = TRUE, row.names = FALSE, quote = FALSE)
+        
+        if (input$select_method_automatic == "Euclidean distance" && length(ind.0) < 80){
+          
+          df <- df[, c("PValue", "Percentage")]
+          df <- df[order(df$PValue), ]
+          df$PValue <- -log10(df$PValue)
+          
+          df <- remove.small.var(df, value = 5e-3)
+          # Recover values from dataframe
+          x <- df$PValue
+          y <- df$Percentage
+          
+          # Smoothing of the curve representing the number as a function of the p-value
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
+          # Study the curve between the first value and the value associated to the highest y (ordinate)
+          ind.max.fitted <- which.max(smooth.loess$fitted)
+          x.after.max <- x[1:ind.max.fitted]
+          y.after.max <- y[1:ind.max.fitted]
+          fitted <- smooth.loess$fitted[1:ind.max.fitted]
+          # Directing coefficient of the line connecting the extremities of the curve
+          a <- (fitted[1] - fitted[length(fitted)]) / (x.after.max[1] - x.after.max[length(x.after.max)])
+          # Ordinate at the origin of the line
+          b <- fitted[1] - a * x.after.max[1]
+          
+          # Directing coefficient of the perpendicular line
+          a.perp <- -1 / a
+          # Ordinate at the origin of the perpendicular line for each x
+          x.smooth <- seq(x.after.max[length(x.after.max)], x.after.max[1], 0.001)
+          y.smooth <- predict(smooth.loess, x.smooth)
+          b.perp <- y.smooth - a.perp * x.smooth
+          
+          # Coordinates of the intersection points between the perpendicular lines and the segment
+          x.perp <- (b.perp - b) / (a - a.perp)
+          y.perp <- a * x.perp + b
+          
+          # Vector containing the distances between each point on the curve and the segment
+          dist.list <- dist.euclid(x.perp, x.smooth, y.perp, y.smooth)
+          
+          # Value of the maximum distance between the curve and the line
+          ind.max <- which.max(dist.list)
+          # Value : -log10(p-value)
+          pval <- 10**-x.smooth[ind.max]
+          pv1 <- pval
+          
+          pdf("Differential/Pvalue/Detect_the_furthest_point.pdf")
+          
+          # The curve representing the number as a function of the p-value
+          plot(x, y, xlab = "-log10(p-value)", ylab = "Percentage of different regions")
+          title(main = "Detect the furthest point of the line")
+          # Smoothing of the curve
+          lines(smooth.loess$fitted ~ smooth.loess$x, col = "blue3", lwd = 3)
+          lines(x, a * x + b, col = "green")
+          # Line perpendicular to the segment and passing through the furthest point of the segment
+          lines(x.smooth, (a.perp * x.smooth + b.perp[ind.max]), col = "blue")
+          # Intersection between the p-value curve and the line perpendicular to the segment
+          points(x.smooth[ind.max], y.smooth[ind.max], pch = 19, col = 'red')
+          # Intersection between the perpendicular line and the segment
+          points(x.perp[ind.max], y.perp[ind.max], pch = 19, col = 'red')
+          # Value of the p-value corresponding to the maximum distance between the curve and the segment
+          abline(v = x.smooth[ind.max], col = "red")
+          
+          dev.off()
+        }
+          
+        if (input$select_method_automatic == "Bezier curve" && length(ind.0) < 80){
+          
+          df <- df[, c("PValue", "Percentage")]
+          df <- df[order(df$PValue), ]
+          df$PValue <- -log10(df$PValue)
+          
+          df <- remove.small.var(df, value = 5e-3)
+          # Recover values from dataframe
+          x <- df$PValue
+          y <- df$Percentage
+          
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
+          # If smoothing changes the profile then the maximum value is changed
+          # Check whether all values are positive
+          # Negative values indicate a profile changing
+          # Tolerance threshold : [-0.5 - 0]
+          ind.diff <- which(diff(smooth.loess$fitted) < -0.5)
+          if (length(ind.diff) <= 1){
+            ind.begin <- length(x)
+          }
+          if (length(ind.diff) > 1){
+            # Keep the indices if they are smallest than the middle position
+            # The goal is to avoid removing a large part of data
+            ind.diff <- ind.diff[ind.diff > 0.5 * length(x)]
+            if (length(ind.diff) > 0){
+              ind.begin <- min(ind.diff)
+            }
+            if (length(ind.diff) == 0){
+              ind.begin <- length(x)
+            }
+          }
+          
+          # Update usable values
+          x <- x[1:ind.begin]
+          y <- y[1:ind.begin]
+          
+          smooth.loess <- loess(y ~ x, span = 0.5)
+          
+          # Find the intersection of tangents
+          # Tangent 1 equation
+          a.t1 <- (smooth.loess$fitted[1] - smooth.loess$fitted[3]) / (smooth.loess$x[1] - smooth.loess$x[3])
+          b.t1 <- smooth.loess$fitted[2] - a.t1 * smooth.loess$x[2]
+          # Tangent 2 equation
+          ind.t2 <- length(smooth.loess$x)
+          a.t2 <- (smooth.loess$fitted[ind.t2] - smooth.loess$fitted[ind.t2 - 2]) / (smooth.loess$x[ind.t2] - smooth.loess$x[ind.t2 - 2])
+          b.t2 <- smooth.loess$fitted[ind.t2 - 1] - a.t2 * smooth.loess$x[ind.t2 - 1]
+          # Abscissa and ordinate of intersection point
+          x.inter <- (b.t2 - b.t1) / (a.t1 - a.t2)
+          y.inter <- a.t1 * x.inter + b.t1
+          
+          # Middle of tangents
+          # Tangent 1
+          x.tangent1 <- smooth.loess$x[2]
+          x.middle1 <- ( x.inter + x.tangent1 ) / 2
+          y.middle1 <- ( y.inter + (a.t1 * x.tangent1 + b.t1) ) / 2
+          # Tangent 2
+          x.tangent2 <- smooth.loess$x[ind.t2 - 1]
+          x.middle2 <- ( x.inter + x.tangent2 ) / 2
+          y.middle2 <- ( y.inter + (a.t2 * x.tangent2 + b.t2) ) / 2
+          
+          # Middle of line binding the middle of each tangent
+          x.middle <- ( x.middle1 + x.middle2 ) / 2
+          y.middle <- ( y.middle1 + y.middle2 ) / 2
+          
+          # Line binding the middle of each tangent
+          a.middles <- (y.middle1 - y.middle2) / (x.middle1 - x.middle2)
+          b.middles <- y.middle1 - a.middles * x.middle1
+          
+          # Line connecting intersection of tangents and the last middle point
+          a.final <- (y.middle - y.inter) / (x.middle - x.inter)
+          b.final <- y.middle - a.final * x.middle
+          
+          # Find intersection between the last line and the curve
+          # Increase the precision of detection thanks to the using of more points
+          x.interval <- seq(x[length(x)], x[1], 0.001)
+          y.interval <- predict(smooth.loess, x.interval)
+          dist <- dist.euclid(x.interval, x.interval, (a.final * x.interval + b.final), y.interval)
+          ind.pval <- which.min(dist)
+          pval <- x.interval[ind.pval]
+          pv1 <- 10**-pval
+          
+          # Return results
+          y.tangent1 <- a.t1 * x.interval + b.t1
+          y.tangent2 <- a.t2 * x.interval + b.t2
+          
+          predictions1 <- list(smooth.loess$x[2], smooth.loess$fitted[2])
+          predictions2 <- list(smooth.loess$x[ind.t2 - 1], smooth.loess$fitted[ind.t2 - 1])
+          
+          pdf("Differential/Pvalue/Bezier-curve_pvalue-detection.pdf")
+          
+          # The curve representing the number as a function of the p-value
+          plot(x, y, main = "Automatic detection of p-value : Bezier curve", xlab = "-log10(p-value)", ylab = "Percentage of different regions")
+          # Smoothing of the curve
+          # lines(spl, col = "blue3", lwd = 3)
+          lines(smooth.loess$fitted ~ smooth.loess$x, col = "blue3", lwd = 3)
+          # Point from which the tangent 1 is constructed
+          points(predictions1[1], predictions1[2], col = 2, pch = 19)
+          # Line of tangent 1
+          lines(x.interval, y.tangent1, col = 3)
+          # Point from which the tangent 2 is constructed
+          points(predictions2[1], predictions2[2], col = 2, pch = 19)
+          # Line of tangent 2
+          lines(x.interval, y.tangent2, col = 3)
+          # Point of intersection between the two tangents
+          points(x.inter, y.inter, col = 2, pch = 19)
+          # Point in the middle of the tangent 1
+          points(x.middle1, y.middle1, col = 3, pch = 19)
+          # Point in the middle of the tangent 2
+          points(x.middle2, y.middle2, col = 3, pch = 19)
+          # Line passing through the two previous middles
+          lines(x, (a.middles * x + b.middles), col = 3)
+          # Point located in the middle of the segment passing through the two previous middles
+          points(x.middle, y.middle, col = 3, pch = 19)
+          # Line connecting the last midpoint to the point of intersection of the tangents
+          lines(x, (a.final * x + b.final), col = 3)
+          # p-value point
+          abline(v = pval, col = "red")
+          # points(pval, predict(spl, pval)$y, col = "red", pch = 19)
+          points(pval, predict(smooth.loess, pval), col = "red", pch = 19)
+          
+          dev.off()
+        }
+      }
+
+      # Initialise the variables to perform the analysis with the chosen p-value
       ALL_dif = NULL
       tab_pourcentage = NULL
       max_tot = 0
       sum_tot = 0
-      
       tab_coord_dif = NULL
+
       
       for (chr in chrs2){
         cat(paste("dif :", chr), file = stderr())
@@ -3272,7 +4278,15 @@ server <- function(input, output, session) {
           
           if (organisme == "Human"){
             centro = centromere(chr,"hg18")
-          }else if (organisme == "noCentromere" ){
+          }
+          else if (organisme == "hg19"){
+            centro = centromere(chr,"hg19")
+          }
+          else if (organisme == "hg38"){
+            index.chr <- which(hg38$chrom %in% chr)
+            centro <- c(hg38[index.chr, 3], hg38[index.chr, 4])
+          }
+          else if (organisme == "noCentromere" ){
             centro = no_centro(chr)
           }else {
             centro = centro_Other(tableauCentro, chr)
@@ -3317,6 +4331,12 @@ server <- function(input, output, session) {
           etat = 0
           compt = 0
           test = NULL
+
+          ###
+          iteration.pos0.delayed <- 0
+          iteration.pos0.advanced <- 0
+          ###
+
           for (i in 2 : (dim(tab_pval)[1]-1)){
             
             if (tab_pval[i,4] != "forestgreen"){
@@ -3343,6 +4363,18 @@ server <- function(input, output, session) {
               flag = 1
               min2 = tab_pval[i,"POSITION"]
               max = tab_pval[i,"POSITION"]
+
+              # Recover the first value (when iteration.pos = 0)
+              if (iteration.pos0.delayed == 0 && etat == 2 * compt){
+                pos.0.delayed <- as.numeric(min2)
+                iteration.pos0.delayed <- iteration.pos0.delayed + 1
+              }
+              
+              if (iteration.pos0.advanced == 0 && etat == -1 * compt){
+                pos.0.advanced <- as.numeric(min2)
+                iteration.pos0.advanced <- iteration.pos0.advanced + 1
+              }
+
               top = top + 1
               
             }
@@ -3412,11 +4444,21 @@ server <- function(input, output, session) {
             debut2 = as.numeric(as.character(inter_de[,2]))
             fin2 = as.numeric(as.character(inter_de[,3]))
           }
+
+          # Vector "debut1" : add the missing position if it exists (for the first value when top < 2)
+          if (!is.null(debut1) && is.na(debut1[1])){
+            debut1[1] <- pos.0.advanced
+          }
           
           if (!is.null(debut1[1])){
             if(debut1[1] == 0){
               debut1[1] = mean(c(All_data1$POSITION[1], All_data2$POSITION[1]))
             }
+          }
+
+          # Vector "debut2" : add the missing position if it exists (for the first value when top < 2)
+          if (!is.null(debut2) && is.na(debut2[1])){
+            debut2[1] <- pos.0.delayed
           }
           
           if (!is.null(debut2[1])){
@@ -3790,10 +4832,18 @@ server <- function(input, output, session) {
         if(is.null(advanced) == F){
           advanced = as.data.frame(cbind(rep(chr, dim(advanced)[1]), advanced, rep("ADVANCED", dim(advanced)[1])))
           names(advanced) = c("CHR","START", "END", "STATUS")
+          #if (input$analysis == "microarray"){
+              #advanced$START <- round(as.numeric(advanced$START))
+              #advanced$END <- round(as.numeric(advanced$END))
+          #}
         }
         if(is.null(delayed) == F){
           delayed = as.data.frame(cbind(rep(chr, dim(delayed)[1]), delayed, rep("DELAYED", dim(delayed)[1])))
           names(delayed) = c("CHR","START", "END", "STATUS")
+          #if (input$analysis == "microarray"){
+            #delayed$START <- round(as.numeric(delayed$START))
+            #delayed$END <- round(as.numeric(delayed$END))
+          #}
         }
         
         
@@ -3816,6 +4866,10 @@ server <- function(input, output, session) {
         tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
       }
       
+      if (input$analysis == "microarray"){
+        ALL_dif <- t(apply(ALL_dif, 1, function(x) round.positions(x)))
+      }
+
       filename = paste("Differential/Differential_position_",num,".txt",sep="")
       write.table( ALL_dif,filename, row.names=F, quote=F, sep="\t")
       filename = paste("Differential/Differential_position_",num,".bed",sep="")
@@ -3829,6 +4883,69 @@ server <- function(input, output, session) {
       write.table(tab_pourcentage,filename, row.names=F, quote=F, sep="\t")
       
     }
+
+    #///////////////////////////////////////////////////////////////////////////
+    # Creating a codebook
+    #///////////////////////////////////////////////////////////////////////////
+    
+    ###############################
+    codebook = NULL
+    codebook = rbind(codebook, c("File 1 : ",File1name))
+    codebook = rbind(codebook, c("File 2 : ",File2name))
+    codebook = rbind(codebook, c("File 3 : ",File3name))
+    codebook = rbind(codebook, c("File 4 : ",File4name))
+    if (input$analysis == "microarray"){
+      codebook = rbind(codebook, c("Total number of lines : ", nbr.total))
+      codebook = rbind(codebook, c("Number of removed lines : ", nbr.remove))
+      codebook = rbind(codebook, c("Percentage of removed lines (%) : ", percentage.remove))
+    }
+    codebook = rbind(codebook, c("Organism : ",organisme))
+    codebook = rbind(codebook, c("Sortie image : ",sortie_image))
+    codebook = rbind(codebook, c("Bed : ",bed))
+    codebook = rbind(codebook, c("Intra array : ",nor1))
+    codebook = rbind(codebook, c("Inter replica : ",nor2))
+    codebook = rbind(codebook, c("Inter experiment : ",nor3))
+    codebook = rbind(codebook, c("Smooth : ",e1))
+    codebook = rbind(codebook, c("TTR : ",e2))
+    codebook = rbind(codebook, c("Segmentation : ",e3))
+    codebook = rbind(codebook, c("All : ",e4))
+    
+    codebook = rbind(codebook, c("Differential analysis : ",e5))
+    
+    if (differential.analysis == TRUE && input$analysis == "repliseq"){
+      codebook = rbind(codebook, c("Total number of lines : ", nbr.total))
+      codebook = rbind(codebook, c("Number of removed lines : ", nbr.remove))
+      codebook = rbind(codebook, c("Percentage of removed lines (%) : ", percentage.remove))
+    }
+    codebook = rbind(codebook, c("Span : ",v1))
+    codebook = rbind(codebook, c("Number of SD : ",v2))
+    codebook = rbind(codebook, c("padjust : ",v3))
+    codebook = rbind(codebook, c("Smooth method : ",v4))
+    codebook = rbind(codebook, c("Size : ",v5))
+    codebook = rbind(codebook, c("Number of lines to skip : ",fs1))
+    codebook = rbind(codebook, c("Column name of green signal : ",fs2))
+    codebook = rbind(codebook, c("Column name of red signal : ",fs3))
+    codebook = rbind(codebook, c("Early fraction : ",fs4))
+    codebook = rbind(codebook, c("Late fraction : ",fs5))
+    ###############################
+
+    if(e5){
+      codebook = rbind(codebook, c("Difference type : ",type_dif))
+      if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Manual pvalue"){
+        codebook = rbind(codebook, c("P-value threshold : ",pv1))
+        codebook = rbind(codebook, c("Window size : ",pv2))
+        codebook = rbind(codebook, c("Adjusted Pvalue : ",pv3))
+        codebook = rbind(codebook, c("Overlap : ",pv4))
+      }
+    }
+
+    if(input$select_method_differential == "Mean method" && input$select_method_pvalue == "Automatic pvalue"){
+      codebook = rbind(codebook, c("Method of automatic detection : ", input$select_method_automatic))
+      codebook = rbind(codebook, c("P-value threshold : ", pv1))
+      codebook = rbind(codebook, c("Window size : ", pv2))
+      codebook = rbind(codebook, c("Adjusted Pvalue : ", pv3))
+      codebook = rbind(codebook, c("Overlap : ", pv4))
+    }
     
     if(input$select_method_differential == "Euclidean method"){
       codebook = rbind(codebook, c("Threshold difference (euclidienne): ",type_dif))
@@ -3838,7 +4955,7 @@ server <- function(input, output, session) {
         codebook = rbind(codebook, c("Empirical threshold (euclidienne): ",paste(seuil,"(non-automatic)")))
       }
     }
-    
+
     # Writing the codebook in the folder
     write.table(codebook, "codebook.txt", quote = F,
                 col.names = F, row.names = F)

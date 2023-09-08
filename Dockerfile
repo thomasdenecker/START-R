@@ -50,7 +50,8 @@ RUN R -e "install.packages(c(\
 'shinythemes',\
 'colourpicker',\
 'rgl',\
-'clusterSim'\
+'clusterSim',\
+'stringr'\
 ), repos='https://cran.rstudio.com/', dependencies = TRUE)"
 
 RUN R -e "install.packages('nloptr', repos='https://cran.rstudio.com/', dependencies = TRUE)"
