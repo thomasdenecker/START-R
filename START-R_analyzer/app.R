@@ -1898,39 +1898,61 @@ server <- function(input, output, session) {
     
     differential.analysis = input$CH_Differential
     union.index <- c()
-    if (differential.analysis == TRUE && input$analysis == "repliseq"){
+    if (input$analysis == "repliseq"){
+      if (differential.analysis == TRUE){
+        # Read all input files
+        file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
+        file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
+        file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
+        file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
+        
+        nbr.total <- dim(file1.before.treatment)[1]
+        
+        if (input$filtering == "remove0"){
+          union.index1 <- remove.zero(file = file1.before.treatment)
+          union.index2 <- remove.zero(file = file2.before.treatment)
+          union.index3 <- remove.zero(file = file3.before.treatment)
+          union.index4 <- remove.zero(file = file4.before.treatment)
           
-          # Read all input files
-          file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
-          file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
-          file3.before.treatment <- read.table(File3, header=T, sep="\t", skip = input$skip_E1_R1)
-          file4.before.treatment <- read.table(File4, header=T, sep="\t", skip = input$skip_E1_R1)
-
-          nbr.total <- dim(file1.before.treatment)[1]
-
-          if (input$filtering == "remove0"){
-            union.index1 <- remove.zero(file = file1.before.treatment)
-            union.index2 <- remove.zero(file = file2.before.treatment)
-            union.index3 <- remove.zero(file = file3.before.treatment)
-            union.index4 <- remove.zero(file = file4.before.treatment)
-            
-            union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
-            union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
-          }
-
-          if (input$filtering == "noise"){
-            inter.index1 <- remove.min.two.columns(file = file1.before.treatment)
-            inter.index2 <- remove.min.two.columns(file = file2.before.treatment)
-            inter.index3 <- remove.min.two.columns(file = file3.before.treatment)
-            inter.index4 <- remove.min.two.columns(file = file4.before.treatment)
-            
-            union.index1.2 <- unique(sort(c(as.numeric(inter.index1), as.numeric(inter.index2))))
-            union.index3.4 <- unique(sort(c(as.numeric(inter.index3), as.numeric(inter.index4))))
-          }
+          union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
+          union.index3.4 <- unique(sort(c(as.numeric(union.index3), as.numeric(union.index4))))
+        }
+        
+        if (input$filtering == "noise"){
+          inter.index1 <- remove.min.two.columns(file = file1.before.treatment)
+          inter.index2 <- remove.min.two.columns(file = file2.before.treatment)
+          inter.index3 <- remove.min.two.columns(file = file3.before.treatment)
+          inter.index4 <- remove.min.two.columns(file = file4.before.treatment)
           
-          # Recover indices from all files in order to remove same lines (= same chromosome and positions)
-          union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
-
+          union.index1.2 <- unique(sort(c(as.numeric(inter.index1), as.numeric(inter.index2))))
+          union.index3.4 <- unique(sort(c(as.numeric(inter.index3), as.numeric(inter.index4))))
+        }
+        
+        # Recover indices from all files in order to remove same lines (= same chromosome and positions)
+        union.index <- unique(sort(c(as.numeric(union.index1.2), as.numeric(union.index3.4))))
+      }
+      if (differential.analysis == FALSE){
+        # Read all input files
+        file1.before.treatment <- read.table(File1, header=T, sep="\t", skip = input$skip_E1_R1)
+        file2.before.treatment <- read.table(File2, header=T, sep="\t", skip = input$skip_E1_R1)
+        
+        nbr.total <- dim(file1.before.treatment)[1]
+        
+        if (input$filtering == "remove0"){
+          union.index1 <- remove.zero(file = file1.before.treatment)
+          union.index2 <- remove.zero(file = file2.before.treatment)
+          union.index1.2 <- unique(sort(c(as.numeric(union.index1), as.numeric(union.index2))))
+        }
+        
+        if (input$filtering == "noise"){
+          inter.index1 <- remove.min.two.columns(file = file1.before.treatment)
+          inter.index2 <- remove.min.two.columns(file = file2.before.treatment)
+          union.index1.2 <- unique(sort(c(as.numeric(inter.index1), as.numeric(inter.index2))))
+        }
+        
+        # Recover indices from all files in order to remove same lines (= same chromosome and positions)
+        union.index <- union.index1.2
+      }
     } 
      else if (input$analysis == "microarray"){
 
@@ -2143,7 +2165,8 @@ server <- function(input, output, session) {
         file.rename(paste0("0.", extension), "E1_R1.txt")
         nom = "E1_R1.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE  && input$analysis == "repliseq" && length(union.index) > 0){
+        # if (differential.analysis == TRUE  && input$analysis == "repliseq" && length(union.index) > 0){
+        if (input$analysis == "repliseq" && length(union.index) > 0){
           treatment.repliseq(name = nom, input.skip = fs1, index = union.index) 
         }
         # File treatment to avoid noise (log2(ratio) = 0)
@@ -2170,7 +2193,8 @@ server <- function(input, output, session) {
         file.rename(paste0("0.", extension2), "E1_R2.txt")
         nom2 = "E1_R2.txt"
         # File treatment to avoid errors during differential analysis
-        if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
+        # if (differential.analysis == TRUE && input$analysis == "repliseq" && length(union.index) > 0){
+        if (input$analysis == "repliseq" && length(union.index) > 0){
           treatment.repliseq(name = nom2, input.skip = fs1, index = union.index) 
         }
         # File treatment to avoid noise (log2(ratio) = 0)
