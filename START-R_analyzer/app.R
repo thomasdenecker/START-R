@@ -4879,25 +4879,50 @@ server <- function(input, output, session) {
         ########################################################################
         # A- Percent changes analysis
         ########################################################################
+
+        if (is.null(ALL_dif) == FALSE){
+          max = max(as.numeric(as.character(RTb$POSITION)))
+          dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),
+                  as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
+          sum = sum(dif)
+          max_tot = max_tot + max
+          sum_tot = sum_tot + sum
+          pourcentage = sum*100/max
+          tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
+        }else{
+          max = max(as.numeric(as.character(RTb$POSITION)))
+          sum = 0
+          max_tot = max_tot + max
+          sum_tot = sum_tot + sum
+          pourcentage = sum*100/max
+          tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
+        }
         
-        max = max(as.numeric(as.character(RTb$POSITION)))
-        dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),
-                as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
-        sum = sum(dif)
-        max_tot = max_tot + max
-        sum_tot = sum_tot + sum
-        pourcentage = sum*100/max
-        tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
+        #max = max(as.numeric(as.character(RTb$POSITION)))
+        #dif = c(as.numeric(as.character(advanced[,3])) - as.numeric(as.character(advanced[,2])),
+        #        as.numeric(as.character(delayed[,3])) - as.numeric(as.character(delayed[,2])))
+        #sum = sum(dif)
+        #max_tot = max_tot + max
+        #sum_tot = sum_tot + sum
+        #pourcentage = sum*100/max
+        #tab_pourcentage = rbind(tab_pourcentage, c(chr,pourcentage))
       }
       
-      if (input$analysis == "microarray"){
+      if (input$analysis == "microarray" && is.null(ALL_dif) == FALSE){
         ALL_dif <- t(apply(ALL_dif, 1, function(x) round.positions(x)))
       }
 
-      filename = paste("Differential/Differential_position_",num,".txt",sep="")
-      write.table( ALL_dif,filename, row.names=F, quote=F, sep="\t")
-      filename = paste("Differential/Differential_position_",num,".bed",sep="")
-      write.table( ALL_dif,filename, row.names=F, quote=F, col.names = F, sep="\t")
+      if (is.null(ALL_dif) == FALSE){
+        filename = paste("Differential/Differential_position_",num,".txt",sep="")
+        write.table(ALL_dif,filename, row.names=F, quote=F, sep="\t")
+        filename = paste("Differential/Differential_position_",num,".bed",sep="")
+        write.table(ALL_dif,filename, row.names=F, quote=F, col.names = F, sep="\t")
+      }
+                           
+      #filename = paste("Differential/Differential_position_",num,".txt",sep="")
+      #write.table( ALL_dif,filename, row.names=F, quote=F, sep="\t")
+      #filename = paste("Differential/Differential_position_",num,".bed",sep="")
+      #write.table( ALL_dif,filename, row.names=F, quote=F, col.names = F, sep="\t")
       
       pourcentage_tot = sum_tot *100/max_tot
       tab_pourcentage = tab_pourcentage[order(tab_pourcentage[,2]),]
