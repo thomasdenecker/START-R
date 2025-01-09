@@ -126,9 +126,9 @@ To help you in the use of START-R, we have written a [wiki](https://github.com/t
 
 - Collect replication timing profiles (same chromosome: ".SRV" files) in a same folder
 
-- Rename files (example: "chr20_exp1.SRV", "chr20_exp2.SRV", "chr20_exp3.SRV", ...) to avoid names of identical files
+- Rename files (example: "chr20_exp1.SRV", "chr20_exp2.SRV", "chr20_exp3.SRV", ...) to avoid same names of files
 
-- In START-R Viewer, go to the folder regrouping files and click on profiles of interest for a same chromosome thanks to the "ctrl" button to select several profiles
+- In START-R Viewer, go to the folder including files and click on profiles of interest for a same chromosome thanks to the "ctrl" button to select several profiles
 
 - The application is limited to the display of ten profiles, that is to say, ten individual profiles or five differential analyses (5 x 2 profiles = 10 profiles)
 
