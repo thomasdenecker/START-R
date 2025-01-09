@@ -122,6 +122,20 @@ When an analysis is done with START-R analyzer, all results for this analysis ar
 
 To help you in the use of START-R, we have written a [wiki](https://github.com/thomasdenecker/START-R/wiki). If you have any questions or problems, do not hesitate to post an [issue](https://github.com/thomasdenecker/START-R/issues/new/). 
 
+## START-R Viewer: display several profiles
+
+- Collect replication timing profiles (same chromosome: ".SRV" files) in a same folder
+
+- Rename files (example: "chr20_exp1.SRV", "chr20_exp2.SRV", "chr20_exp3.SRV", ...) to avoid names of identical files
+
+- In START-R Viewer, go to the folder regrouping files and click on profiles of interest for a same chromosome thanks to the "ctrl" button to select several profiles
+
+- The application is limited to the display of ten profiles, that is to say, ten individual profiles or five differential analyses (5 x 2 profiles = 10 profiles)
+
+- Show comparable profiles on the same graph (example: same type of experiment, same scale, same normalization, ...)
+
+- Don't show a profile not derived from a differential analysis with two profiles compared as part of a differential analysis
+
 ## Development
 
 ### Launch in debug mode
